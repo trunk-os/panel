@@ -1,4 +1,4 @@
-# Trunk Admin
+# Trunk Panel
 
 A comprehensive system administration dashboard built with React, TypeScript, and Material UI. Provides an intuitive interface for managing users, ZFS storage, and monitoring system status.
 
@@ -65,7 +65,7 @@ A comprehensive system administration dashboard built with React, TypeScript, an
 1. **Clone and navigate to the project**
    ```bash
    git clone <repository-url>
-   cd trunk/admin
+   cd trunk/panel
    ```
 
 2. **Install dependencies**
