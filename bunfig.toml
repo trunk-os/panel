@@ -1,0 +1,9 @@
+[serve]
+port = 3000
+
+[serve.static]
+env = "BUN_PUBLIC_*"
+directory = "./public"
+
+[dev]
+hot = true

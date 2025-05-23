@@ -1,0 +1,5 @@
+[test]
+preload = "./test/setup.ts"
+jsx = true
+jsdom = false
+environment = "happy-dom"
