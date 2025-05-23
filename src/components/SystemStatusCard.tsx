@@ -78,7 +78,7 @@ export default function SystemStatusCard({ collapsed = false }: SystemStatusCard
                   <Chip
                     label={apiStatus ? "UP" : "DOWN"}
                     color={apiStatus ? "success" : "error"}
-                    size="large"
+                    size="medium"
                     sx={{
                       fontSize: "1.5rem",
                       padding: "1.5rem 0.5rem",

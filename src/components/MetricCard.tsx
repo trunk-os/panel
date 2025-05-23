@@ -2,10 +2,10 @@ import { Box, Card, CardContent, Typography, LinearProgress, Tooltip } from "@mu
 
 interface MetricCardProps {
   title: string;
-  value: string | number | undefined;
+  value: string | number | null | undefined;
   isLoading?: boolean;
   progress?: number;
-  secondaryValue?: string | number;
+  secondaryValue?: string | number | null;
   secondaryLabel?: string;
   unit?: string;
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
@@ -23,7 +23,8 @@ export default function MetricCard({
   color = "primary",
   collapsed = false,
 }: MetricCardProps) {
-  const formatValue = (val: string | number) => {
+  const formatValue = (val: string | number | null) => {
+    if (val === null) return "-";
     return typeof val === "number" ? val.toLocaleString() : val;
   };
 
@@ -74,7 +75,7 @@ export default function MetricCard({
                     lineHeight: 1.2,
                   }}
                 >
-                  {value !== undefined ? formatValue(value) : "-"}
+                  {value !== undefined && value !== null ? formatValue(value) : "-"}
                   {unit && (
                     <Typography component="span" variant="h5">
                       {unit}
@@ -82,7 +83,7 @@ export default function MetricCard({
                   )}
                 </Typography>
 
-                {secondaryValue && secondaryLabel && (
+                {secondaryValue !== null && secondaryValue !== undefined && secondaryLabel && (
                   <Tooltip title={secondaryLabel} arrow>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                       {secondaryLabel}: {formatValue(secondaryValue)}
@@ -118,7 +119,7 @@ export default function MetricCard({
               </Box>
             ) : (
               <Typography variant="body1" color={`${color}.main`} sx={{ fontWeight: "bold" }}>
-                {value !== undefined ? formatValue(value) : "-"}
+                {value !== undefined && value !== null ? formatValue(value) : "-"}
                 {unit && unit}
                 {progress !== undefined && ` (${progress}%)`}
               </Typography>
