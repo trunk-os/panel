@@ -1,0 +1,16 @@
+:80 {
+	root * /srv
+	try_files {path} /index.html
+	file_server
+	
+	# Security headers
+	header {
+		X-Frame-Options DENY
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-XSS-Protection "1; mode=block"
+	}
+	
+	# Enable compression
+	encode gzip
+}
