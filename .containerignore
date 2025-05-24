@@ -11,5 +11,7 @@ dist/
 *.log
 .env
 .env.local
+.env.development
+.env.example
 .DS_Store
 Thumbs.db

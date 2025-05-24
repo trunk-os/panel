@@ -246,6 +246,38 @@ bun build
 # Serve with any static file server
 ```
 
+## Container Deployment
+
+### Podman Build
+
+1. **Configure production environment**
+   ```bash
+   # Create .env.production with your API server URL
+   echo "VITE_API_BASE_URL=http://your-api-server:5309" > .env.production
+   ```
+
+2. **Build the container image**
+   ```bash
+   podman build -t trunk-admin .
+   ```
+
+3. **Run the container**
+   ```bash
+   # Run on port 8080
+   podman run -d -p 8080:8080 --name trunk-admin trunk-admin
+   
+   # Or with custom port
+   podman run -d -p 3000:8080 --name trunk-admin trunk-admin
+   ```
+
+4. **Access the application**
+   - Navigate to http://localhost:8080 (or your configured port)
+
+The container build process will:
+- Use the `.env.production` file to configure the API base URL at build time
+- Build the React application with production optimizations
+- Serve the static files using a lightweight web server
+
 ## License
 
 [MIT](LICENSE)

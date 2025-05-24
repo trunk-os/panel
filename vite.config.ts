@@ -1,12 +1,17 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
-// Log environment variables for debugging
-console.log("DEV_HOST:", process.env.DEV_HOST);
+export default defineConfig(({ command, mode }) => {
+  // Load env file based on `mode` in the current working directory.
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  // Log environment variables for debugging
+  console.log("DEV_HOST:", env.DEV_HOST);
+  console.log("VITE_API_BASE_URL:", env.VITE_API_BASE_URL);
 
-export default defineConfig({
+  return {
   base: "/", // Explicitly set the base path
   plugins: [
     react(),
@@ -32,19 +37,12 @@ export default defineConfig({
     open: true,
     hmr: {
       // Configure HMR to work with custom hostname
-      host: process.env.DEV_HOST || "localhost",
+      host: env.DEV_HOST || "localhost",
       port: 3000,
       clientPort: 3000,
     },
     watch: {
       usePolling: true,
-    },
-    proxy: {
-      "/api": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        secure: false,
-      },
     },
     cors: true,
   },
@@ -57,7 +55,7 @@ export default defineConfig({
     },
   },
   define: {
-    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+    "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV || mode),
   },
   publicDir: "public",
   optimizeDeps: {
@@ -68,4 +66,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });
