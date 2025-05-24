@@ -3,15 +3,10 @@ import { persist } from "zustand/middleware";
 import { api } from "@/api/client";
 import type { Login } from "@/api/types";
 import { createSecureStorage } from "./secureStorage";
-
-interface User {
-  id: string;
-  username: string;
-  role: string;
-}
+import type { UserData } from "@/api/types";
 
 interface AuthState {
-  user: User | null;
+  user: UserData | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -28,36 +23,41 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
-      
+
       getToken: () => get().token,
-      
+
       clearToken: () => {
         set({ user: null, token: null, isAuthenticated: false });
       },
-      
+
       login: async (credentials: Login) => {
         set({ isLoading: true });
         try {
           const response = await api.session.login(credentials);
           const token = response.data.token;
-          
-          set({ 
+          set({
             token,
-            isAuthenticated: true, 
-            isLoading: false 
+            user: null,
+            isAuthenticated: true,
+          });
+          // get my user data
+          const me: UserData = (await api.session.me()).data;
+          set({
+            user: me,
+            isLoading: false,
           });
         } catch (error) {
           console.log("[authStore] Login error:", error);
-          set({ 
+          set({
             user: null,
             token: null,
-            isAuthenticated: false, 
-            isLoading: false 
+            isAuthenticated: false,
+            isLoading: false,
           });
           throw error;
         }
       },
-      
+
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false });
       },

@@ -208,7 +208,7 @@ await api.zfs.createDataset({
 
 The application uses Zustand for state management with the following stores:
 
-- **authStore**: User authentication, tokens, and session management
+- **authStore**: User authentication, tokens, and session management (using react-secure-storage for persistance)
 - **themeStore**: UI theme preferences and system theme detection
 - **apiStatusStore**: API connection status and health monitoring
 
@@ -240,7 +240,7 @@ Test files are located in `__tests__` directories alongside the code they test.
 
 ```bash
 # Build the application
-bun build
+bun run build
 
 # The built files will be in the `dist/` directory
 # Serve with any static file server
@@ -264,10 +264,10 @@ bun build
 3. **Run the container**
    ```bash
    # Run on port 8080
-   podman run -d -p 8080:8080 --name trunk-admin trunk-admin
+   podman run -d -p 8080:80 --name trunk-admin trunk-admin
    
    # Or with custom port
-   podman run -d -p 3000:8080 --name trunk-admin trunk-admin
+   podman run -d -p 3000:80 --name trunk-admin trunk-admin
    ```
 
 4. **Access the application**

@@ -13,7 +13,7 @@ import type {
 import { ApiError, type ApiResponse } from "./errors";
 import { useAuthStore } from "@/store/authStore";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://islay:5309";
 
 const handleErrorResponse = async (response: Response) => {
   if (response.status === 401) {
@@ -147,5 +147,6 @@ export const api = {
   session: {
     login: (login: Login, options?: RequestInit) =>
       api.post<Token>("/session/login", login, options),
+    me: (options?: RequestInit) => api.get<UserData>("/session/me", options),
   },
 };
