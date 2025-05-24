@@ -10,6 +10,7 @@ import UserManagementPage from "@/components/UserManagementPage";
 import UserDetailsPage from "@/components/UserDetailsPage";
 import { LoginPage } from "@/components/LoginPage";
 import { AuthGuard } from "@/components/AuthGuard";
+import { AuthInitializer } from "@/components/AuthInitializer";
 import { Favicon } from "@/components/Favicon";
 import { useThemeStore } from "@/store/themeStore";
 
@@ -45,6 +46,7 @@ export function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Favicon />
+      <AuthInitializer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={

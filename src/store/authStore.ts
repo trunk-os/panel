@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { api } from "@/api/client";
 import type { Login } from "@/api/types";
 import { createSecureStorage } from "./secureStorage";
 import type { UserData } from "@/api/types";
@@ -10,10 +9,11 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: Login) => Promise<void>;
+  login: (credentials: Login, apiClient: any) => Promise<void>;
   logout: () => void;
   getToken: () => string | null;
   clearToken: () => void;
+  initialize: (apiClient: any) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: false,
+      isLoading: true,
 
       getToken: () => get().token,
 
@@ -30,10 +30,10 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false });
       },
 
-      login: async (credentials: Login) => {
+      login: async (credentials: Login, apiClient: any) => {
         set({ isLoading: true });
         try {
-          const response = await api.session.login(credentials);
+          const response = await apiClient.session.login(credentials);
           const token = response.data.token;
           set({
             token,
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
           });
           // get my user data
-          const me: UserData = (await api.session.me()).data;
+          const me: UserData = (await apiClient.session.me()).data;
           set({
             user: me,
             isLoading: false,
@@ -61,20 +61,42 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false });
       },
+
+      initialize: async (apiClient: any) => {
+        const token = get().token;
+        if (!token) {
+          set({ isLoading: false });
+          return;
+        }
+
+        set({ isLoading: true });
+        try {
+          const me: UserData = (await apiClient.session.me()).data;
+          set({
+            user: me,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.log("[authStore] Token validation failed:", error);
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      },
     }),
     {
       name: "trunk-admin-auth",
-      storage: createSecureStorage<AuthState>(),
+      storage: createSecureStorage(),
       partialize: (state) => ({
-        user: null,
         token: state.token,
-        isAuthenticated: state.isAuthenticated,
-        isLoading: false,
-        getToken: state.getToken,
-        clearToken: state.clearToken,
-        login: state.login,
-        logout: state.logout,
       }),
+      onRehydrateStorage: () => () => {
+        // Storage rehydrated
+      },
     }
   )
 );

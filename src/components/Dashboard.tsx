@@ -248,7 +248,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography variant="h6">Recent Activity</Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography component="span" variant="body2" color="text.secondary">
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec efficitur purus a
                   justo volutpat, eget vestibulum felis venenatis. In hac habitasse platea dictumst.

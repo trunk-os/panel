@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useAuthStore } from "@/store/authStore";
 import { ApiError } from "@/api/errors";
+import { api } from "@/api/client";
 import type { Login, UserCreateRequest } from "@/api/types";
 import { CreateUserDialog } from "./CreateUserDialog";
 
@@ -44,7 +45,7 @@ export function LoginPage() {
     setError("");
 
     try {
-      await login({ username: formData.username, password: formData.password });
+      await login({ username: formData.username, password: formData.password }, api);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
