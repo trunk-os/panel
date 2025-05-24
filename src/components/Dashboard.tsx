@@ -1,11 +1,11 @@
 import { Typography, Card, CardContent, Box, useMediaQuery, useTheme } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
-import SystemStatusCard from "./SystemStatusCard";
-import DiskMetricCard from "./DiskMetricCard";
-import ComputeMetricCard from "./ComputeMetricCard";
-import NetworkMetricCard from "./NetworkMetricCard";
+import SystemStatusCard from "./metrics/SystemStatusCard";
+import DiskMetricCard from "./metrics/DiskMetricCard";
+import ComputeMetricCard from "./metrics/ComputeMetricCard";
+import NetworkMetricCard from "./metrics/NetworkMetricCard";
 import SkeletonCard from "./SkeletonCard";
-import MetricCard from "./MetricCard";
+import MetricCard from "./metrics/MetricCard";
 
 const drawerWidth = 240;
 const cardHeight = 240;
@@ -40,10 +40,6 @@ export default function Dashboard() {
       const observer = new IntersectionObserver((entries) => {
         const entry = entries[0];
         setIsCollapsed(!entry.isIntersecting);
-
-        if (metricsRef.current) {
-          const rect = metricsRef.current.getBoundingClientRect();
-        }
       }, observerOptions);
 
       if (metricsRef.current) {

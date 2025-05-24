@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Typography, Tooltip, Button, Chip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useApiStatusStore } from "../store/apiStatusStore";
+import { useApiStatusStore } from "@/store/apiStatusStore";
 
 interface SystemStatusCardProps {
   collapsed?: boolean;
