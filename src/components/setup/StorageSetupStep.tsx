@@ -45,19 +45,27 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
-function convertToBytes(size: string, unit: string): number {
-  const sizeNum = Number.parseInt(size);
+// Convert size string to kb
+function calculateSize(size: string): number {
+  if (!size) return 0;
+  
+  const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?)B?$/i);
+  if (!match) return Number.parseInt(size) || 0;
+  
+  const value = Number.parseFloat(match[1]);
+  const unit = match[2].toUpperCase();
+  
   switch (unit) {
-    case "K":
-      return sizeNum * 1024;
-    case "M":
-      return sizeNum * 1024 * 1024;
-    case "G":
-      return sizeNum * 1024 * 1024 * 1024;
     case "T":
-      return sizeNum * 1024 * 1024 * 1024 * 1024;
+      return value * 1024 * 1024 * 1024; // TB to KB
+    case "G":
+      return value * 1024 * 1024; // GB to KB
+    case "M":
+      return value * 1024; // MB to KB
+    case "K":
+      return value; // KB to KB
     default:
-      return sizeNum;
+      return value / 1024; // Bytes to KB
   }
 }
 
@@ -69,7 +77,7 @@ function CreateInitialDatasetDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (name: string, quota?: string) => void;
+  onSubmit: (name: string, quota?: number) => void;
   isLoading: boolean;
 }) {
   const [name, setName] = useState("data");
@@ -77,8 +85,8 @@ function CreateInitialDatasetDialog({
   const [quotaUnit, setQuotaUnit] = useState("G");
 
   const handleSubmit = () => {
-    const quotaInBytes = convertToBytes(quota, quotaUnit);
-    onSubmit(name, quotaInBytes.toString());
+    const quotaInKB = calculateSize(`${quota}${quotaUnit}B`);
+    onSubmit(name, quotaInKB);
   };
 
   const handleClose = () => {
@@ -182,7 +190,7 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
     fetchZFSEntries();
   }, []);
 
-  const handleCreateDataset = async (name: string, quota?: string) => {
+  const handleCreateDataset = async (name: string, quota?: number) => {
     setIsCreating(true);
     try {
       await api.zfs.createDataset({ name, quota });

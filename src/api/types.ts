@@ -53,7 +53,7 @@ export interface ZFSName {
 
 export interface ZFSDataset {
   name: string;
-  quota?: string;
+  quota?: number;
 }
 
 export interface ZFSVolume {

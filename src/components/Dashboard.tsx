@@ -4,8 +4,9 @@ import SystemStatusCard from "./metrics/SystemStatusCard";
 import DiskMetricCard from "./metrics/DiskMetricCard";
 import ComputeMetricCard from "./metrics/ComputeMetricCard";
 import NetworkMetricCard from "./metrics/NetworkMetricCard";
+import VMMetricCard from "./metrics/VMMetricCard";
+import ObjectStorageMetricCard from "./metrics/ObjectStorageMetricCard";
 import SkeletonCard from "./SkeletonCard";
-import MetricCard from "./metrics/MetricCard";
 
 const drawerWidth = 240;
 const cardHeight = 240;
@@ -14,8 +15,8 @@ export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const [userCount, setUserCount] = useState<number | undefined>();
-  const [sessionCount, setSessionCount] = useState<number | undefined>();
+  const [vmData, setVmData] = useState<{ active: number; cpus: number; memory: string } | undefined>();
+  const [storageData, setStorageData] = useState<{ objects: number; used: string; available: string } | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -66,8 +67,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setUserCount(128);
-      setSessionCount(42);
+      setVmData({ active: 12, cpus: 48, memory: "256 GB" });
+      setStorageData({ objects: 1847293, used: "2.4 TB", available: "12.6 TB" });
       setIsLoading(false);
     }, 1500);
 
@@ -125,7 +126,7 @@ export default function Dashboard() {
             flexDirection: "row",
             gap: 1,
             transition: "all 0.3s ease",
-            height: "40px",
+            minHeight: "56px",
             alignItems: "center",
             width: isMobile ? "100%" : `calc(100% - ${drawerWidth}px)`,
             opacity: 0.95,
@@ -136,35 +137,11 @@ export default function Dashboard() {
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            {isLoading ? (
-              <Card sx={{ p: 1 }}>
-                <Typography variant="subtitle1">Users</Typography>
-              </Card>
-            ) : (
-              <MetricCard
-                title="Users"
-                value={userCount}
-                isLoading={isLoading}
-                color="success"
-                collapsed={true}
-              />
-            )}
+            <VMMetricCard collapsed={true} />
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            {isLoading ? (
-              <Card sx={{ p: 1 }}>
-                <Typography variant="subtitle1">Active Sessions</Typography>
-              </Card>
-            ) : (
-              <MetricCard
-                title="Active Sessions"
-                value={sessionCount}
-                isLoading={isLoading}
-                color="warning"
-                collapsed={true}
-              />
-            )}
+            <ObjectStorageMetricCard collapsed={true} />
           </Box>
 
           <Box sx={{ flex: 1 }}>
@@ -194,24 +171,11 @@ export default function Dashboard() {
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            {isLoading ? (
-              <SkeletonCard />
-            ) : (
-              <MetricCard title="Users" value={userCount} isLoading={isLoading} color="success" />
-            )}
+            <VMMetricCard />
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            {isLoading ? (
-              <SkeletonCard />
-            ) : (
-              <MetricCard
-                title="Active Sessions"
-                value={sessionCount}
-                isLoading={isLoading}
-                color="warning"
-              />
-            )}
+            <ObjectStorageMetricCard />
           </Box>
         </Box>
 

@@ -24,14 +24,36 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
-  Chip,
   Alert,
   Snackbar,
-  FormHelperText,
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import { type ZFSEntry, type ZFSList, ZFSType } from "@/api/types";
+import type { ZFSEntry, ZFSList } from "@/api/types";
+
+// Convert size string to kb
+function calculateSize(size: string): number {
+  if (!size) return 0;
+
+  const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?)B?$/i);
+  if (!match) return Number.parseInt(size) || 0;
+
+  const value = Number.parseFloat(match[1]);
+  const unit = match[2].toUpperCase();
+
+  switch (unit) {
+    case "T":
+      return value * 1024 * 1024 * 1024; // TB to KB
+    case "G":
+      return value * 1024 * 1024; // GB to KB
+    case "M":
+      return value * 1024; // MB to KB
+    case "K":
+      return value; // KB to KB
+    default:
+      return value / 1024; // Bytes to KB
+  }
+}
 
 // Input validation functions
 function isValidName(name: string): boolean {
@@ -50,21 +72,6 @@ function formatBytes(bytes: number, decimals = 2) {
 
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
-function convertToBytes(size: string, unit: string): number {
-  const sizeNum = Number.parseInt(size);
-  switch (unit) {
-    case "K":
-      return sizeNum * 1024;
-    case "M":
-      return sizeNum * 1024 * 1024;
-    case "G":
-      return sizeNum * 1024 * 1024 * 1024;
-    case "T":
-      return sizeNum * 1024 * 1024 * 1024 * 1024;
-    default:
-      return sizeNum;
-  }
-}
 
 function CreateDatasetDialog({
   open,
@@ -74,7 +81,7 @@ function CreateDatasetDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (name: string, quota?: string) => void;
+  onSubmit: (name: string, quota?: number) => void;
   isLoading: boolean;
 }) {
   const [name, setName] = useState("");
@@ -105,8 +112,8 @@ function CreateDatasetDialog({
     if (nameError || !name) return;
 
     if (quota) {
-      const quotaInBytes = convertToBytes(quota, quotaUnit);
-      onSubmit(name, quotaInBytes.toString());
+      const quotaInKB = calculateSize(`${quota}${quotaUnit}B`);
+      onSubmit(name, quotaInKB);
     } else {
       onSubmit(name, undefined);
     }
@@ -196,7 +203,7 @@ function CreateVolumeDialog({
   isLoading: boolean;
 }) {
   const [name, setName] = useState("");
-  const [size, setSize] = useState("");
+  const [size, setSize] = useState(0);
   const [sizeUnit, setSizeUnit] = useState("G");
   const [nameError, setNameError] = useState("");
 
@@ -222,13 +229,13 @@ function CreateVolumeDialog({
   const handleSubmit = () => {
     if (nameError || !name || !size) return;
 
-    const sizeInBytes = convertToBytes(size, sizeUnit);
-    onSubmit(name, sizeInBytes);
+    const sizeInKB = calculateSize(`${size}${sizeUnit}B`);
+    onSubmit(name, sizeInKB);
   };
 
   const handleClose = () => {
     setName("");
-    setSize("");
+    setSize(0);
     setSizeUnit("G");
     setNameError("");
     onClose();
@@ -261,7 +268,7 @@ function CreateVolumeDialog({
             type="number"
             variant="outlined"
             value={size}
-            onChange={(e) => setSize(e.target.value)}
+            onChange={(e) => setSize(Number.parseFloat(e.target.value) || 0)}
             sx={{ flex: 2 }}
           />
           <FormControl sx={{ flex: 1 }}>
@@ -408,7 +415,7 @@ export default function ZFSPage() {
     setFilterTimeout(timeout);
   };
 
-  const handleCreateDataset = async (name: string, quota?: string) => {
+  const handleCreateDataset = async (name: string, quota?: number) => {
     setIsCreatingDataset(true);
     try {
       await api.zfs.createDataset({ name, quota });
@@ -488,60 +495,121 @@ export default function ZFSPage() {
             </Box>
           </Box>
 
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Size</TableCell>
-                  <TableCell>Used</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {isLoading ? (
+          {/* Datasets Table */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Datasets
+            </Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      <CircularProgress />
-                    </TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Size</TableCell>
+                    <TableCell>Used</TableCell>
+                    <TableCell>Available</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                ) : zfsList?.entries && zfsList.entries.length > 0 ? (
-                  zfsList.entries.map((entry) => (
-                    <TableRow key={entry.full_name}>
-                      <TableCell>
-                        <Chip
-                          label={entry.kind === "Dataset" ? "Dataset" : "Volume"}
-                          color={entry.kind === "Dataset" ? "primary" : "secondary"}
-                          variant="outlined"
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{entry.name}</TableCell>
-
-                      <TableCell>{formatBytes(entry.size)}</TableCell>
-                      <TableCell>{formatBytes(entry.used)}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => openDestroyDialog(entry)}
-                        >
-                          <span className="material-symbols-outlined">delete</span>
-                        </IconButton>
+                </TableHead>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        <CircularProgress />
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
+                  ) : zfsList?.entries &&
+                    zfsList.entries.filter((entry) => entry.kind === "Dataset").length > 0 ? (
+                    zfsList.entries
+                      .filter((entry) => entry.kind === "Dataset")
+                      .map((entry) => {
+                        // For datasets: use size (will be quota when available) vs available, whichever is smaller
+                        const effectiveSize = Math.min(entry.size, entry.avail + entry.used);
+                        return (
+                          <TableRow key={entry.full_name}>
+                            <TableCell>{entry.name}</TableCell>
+                            <TableCell>{formatBytes(effectiveSize)}</TableCell>
+                            <TableCell>{formatBytes(entry.used)}</TableCell>
+                            <TableCell>{formatBytes(entry.avail)}</TableCell>
+                            <TableCell>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => openDestroyDialog(entry)}
+                              >
+                                <span className="material-symbols-outlined">delete</span>
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No datasets found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+
+          {/* Volumes Table */}
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Volumes
+            </Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      No datasets or volumes found
-                    </TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Size</TableCell>
+                    <TableCell>Used</TableCell>
+                    <TableCell>Available</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        <CircularProgress />
+                      </TableCell>
+                    </TableRow>
+                  ) : zfsList?.entries &&
+                    zfsList.entries.filter((entry) => entry.kind === "Volume").length > 0 ? (
+                    zfsList.entries
+                      .filter((entry) => entry.kind === "Volume")
+                      .map((entry) => (
+                        <TableRow key={entry.full_name}>
+                          <TableCell>{entry.name}</TableCell>
+                          <TableCell>{formatBytes(entry.size)}</TableCell>
+                          <TableCell>{formatBytes(entry.used)}</TableCell>
+                          <TableCell>{formatBytes(entry.avail)}</TableCell>
+                          <TableCell>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openDestroyDialog(entry)}
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No volumes found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </CardContent>
       </Card>
 
