@@ -50,8 +50,14 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
     }
 
     try {
-      await api.users.create(formData);
-      onUserCreated(formData);
+      const userData = {
+        ...formData,
+        realname: formData.realname || null,
+        email: formData.email || null,
+        phone: formData.phone || null,
+      };
+      await api.users.create(userData);
+      onUserCreated(userData);
       handleClose();
     } catch (err) {
       if (err instanceof ApiError) {

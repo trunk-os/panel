@@ -64,9 +64,9 @@ export interface ZFSVolume {
 export interface UserData {
   id: number;
   username: string;
-  realname?: string;
-  email?: string;
-  phone?: string;
+  realname?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
 export interface UserCreateRequest extends Omit<UserData, "id"> {

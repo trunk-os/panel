@@ -164,9 +164,9 @@ function CreateAdditionalUserDialog({
     const newUser: UserCreateRequest = {
       username,
       password,
-      realname: realname || undefined,
-      email: email || undefined,
-      phone: phone || undefined,
+      realname: realname || null,
+      email: email || null,
+      phone: phone || null,
     };
 
     onSubmit(newUser);

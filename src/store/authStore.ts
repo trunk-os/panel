@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Login } from "@/api/types";
+import type { Login, UserData } from "@/api/types";
 import { createSecureStorage } from "./secureStorage";
-import type { UserData } from "@/api/types";
+import type { api } from "@/api/client";
+
+type ApiClient = typeof api;
 
 interface AuthState {
   user: UserData | null;
@@ -14,13 +16,13 @@ interface AuthState {
     currentStep: number;
     completedSteps: string[];
   };
-  login: (credentials: Login, apiClient: any) => Promise<void>;
+  login: (credentials: Login, apiClient: ApiClient) => Promise<void>;
   logout: () => void;
   getToken: () => string | null;
   clearToken: () => void;
-  initialize: (apiClient: any) => Promise<void>;
+  initialize: (apiClient: ApiClient) => Promise<void>;
   markSetupComplete: () => void;
-  checkSetupRequired: (apiClient: any) => Promise<boolean>;
+  checkSetupRequired: (apiClient: ApiClient) => Promise<boolean>;
   updateSetupProgress: (step: number, completedSteps: string[]) => void;
   resetSetupProgress: () => void;
 }
@@ -72,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      checkSetupRequired: async (apiClient: any) => {
+      checkSetupRequired: async (apiClient: ApiClient) => {
         try {
           const usersList = await apiClient.users.list();
           const hasMultipleUsers = Array.isArray(usersList.data) && usersList.data.length > 1;
@@ -93,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: async (credentials: Login, apiClient: any) => {
+      login: async (credentials: Login, apiClient: ApiClient) => {
         set({ isLoading: true });
         try {
           const response = await apiClient.session.login(credentials);
@@ -127,7 +129,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false });
       },
 
-      initialize: async (apiClient: any) => {
+      initialize: async (apiClient: ApiClient) => {
         const token = get().token;
         if (!token) {
           set({ isLoading: false });
