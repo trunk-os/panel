@@ -22,8 +22,8 @@ const menuItems = [
     icon: "dashboard",
   },
   {
-    label: "ZFS",
-    path: "/zfs",
+    label: "Disk",
+    path: "/disk",
     icon: "storage",
   },
   {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ApiStatusIndicator from "./ApiStatusIndicator";
-import { Outlet, Link as RouterLink } from "react-router-dom";
+import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -21,6 +21,7 @@ import {
   Tooltip,
   Menu,
   MenuItem,
+  Chip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
@@ -65,8 +66,8 @@ const menuItems = [
     icon: "dashboard",
   },
   {
-    label: "ZFS",
-    path: "/zfs",
+    label: "Disk",
+    path: "/disk",
     icon: "storage",
   },
   {
@@ -83,8 +84,9 @@ const menuItems = [
 
 export default function Layout() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { mode, toggleTheme } = useThemeStore();
-  const { user, logout } = useAuthStore();
+  const { user, logout, needsSetup, setupProgress } = useAuthStore();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -104,6 +106,11 @@ export default function Layout() {
   const handleLogout = async () => {
     handleUserMenuClose();
     await logout();
+  };
+
+  const handleGoToSetup = () => {
+    handleUserMenuClose();
+    navigate("/setup");
   };
 
   const drawer = (
@@ -188,12 +195,12 @@ export default function Layout() {
                 </IconButton>
               </Tooltip>
               <Tooltip title={user?.username || "User"}>
-                <IconButton 
-                  color="inherit" 
+                <IconButton
+                  color="inherit"
                   onClick={handleUserMenuClick}
-                  aria-controls={anchorEl ? 'user-menu' : undefined}
+                  aria-controls={anchorEl ? "user-menu" : undefined}
                   aria-haspopup="true"
-                  aria-expanded={anchorEl ? 'true' : undefined}
+                  aria-expanded={anchorEl ? "true" : undefined}
                 >
                   <span className="material-symbols-outlined">account_circle</span>
                 </IconButton>
@@ -204,10 +211,10 @@ export default function Layout() {
                 open={Boolean(anchorEl)}
                 onClose={handleUserMenuClose}
                 MenuListProps={{
-                  'aria-labelledby': 'user-button',
+                  "aria-labelledby": "user-button",
                 }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
                 <MenuItem onClick={handleUserMenuClose} disabled>
                   <ListItemIcon>
@@ -215,6 +222,24 @@ export default function Layout() {
                   </ListItemIcon>
                   <ListItemText primary={user?.username || "User"} />
                 </MenuItem>
+                <Divider />
+                {needsSetup && (
+                  <MenuItem onClick={handleGoToSetup}>
+                    <ListItemIcon>
+                      <span className="material-symbols-outlined">settings</span>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="First-Time Setup"
+                      secondary="Incomplete"
+                    />
+                    <Chip
+                      label={`Step ${setupProgress.currentStep + 1}`}
+                      size="small"
+                      color="warning"
+                      variant="outlined"
+                    />
+                  </MenuItem>
+                )}
                 <Divider />
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>

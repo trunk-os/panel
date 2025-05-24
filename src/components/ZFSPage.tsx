@@ -122,9 +122,9 @@ function CreateDatasetDialog({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create ZFS Dataset</DialogTitle>
+      <DialogTitle>Create Dataset</DialogTitle>
       <DialogContent>
-        <DialogContentText>Create a new ZFS dataset with optional quota.</DialogContentText>
+        <DialogContentText>Create a new dataset with optional quota.</DialogContentText>
         <TextField
           autoFocus
           margin="dense"
@@ -236,9 +236,9 @@ function CreateVolumeDialog({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create ZFS Volume</DialogTitle>
+      <DialogTitle>Create Volume</DialogTitle>
       <DialogContent>
-        <DialogContentText>Create a new ZFS volume with specified size.</DialogContentText>
+        <DialogContentText>Create a new volume with specified size.</DialogContentText>
         <TextField
           autoFocus
           margin="dense"
@@ -315,8 +315,8 @@ function DestroyConfirmationDialog({
       <DialogTitle>Confirm Destruction</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure you want to destroy the ZFS dataset/volume <strong>{name}</strong>? This
-          action cannot be undone.
+          Are you sure you want to destroy the dataset/volume <strong>{name}</strong>? This action
+          cannot be undone.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
@@ -458,9 +458,9 @@ export default function ZFSPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Box>
-        <Typography variant="h2">ZFS Management</Typography>
+        <Typography variant="h2">Disk Management</Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage ZFS datasets and volumes
+          Manage datasets and volumes
         </Typography>
       </Box>
 
@@ -535,7 +535,7 @@ export default function ZFSPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={9} align="center">
-                      No ZFS datasets or volumes found
+                      No datasets or volumes found
                     </TableCell>
                   </TableRow>
                 )}
