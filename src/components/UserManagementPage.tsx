@@ -29,6 +29,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import type { UserData, UserCreateRequest, UserList, UserUpdateRequest } from "@/api/types";
 import { CreateUserDialog } from "./CreateUserDialog";
+import { useAuthStore } from "@/store/authStore";
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -41,7 +42,6 @@ function isValidUsername(username: string): boolean {
 function isValidPassword(password: string): boolean {
   return password.length >= 8;
 }
-
 
 function EditUserDialog({
   open,
@@ -309,12 +309,14 @@ function DeleteUserConfirmationDialog({
   onClose,
   onConfirm,
   user,
+  currentUser,
   isLoading,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   user: UserData | null;
+  currentUser: UserData | null;
   isLoading: boolean;
 }) {
   return (
@@ -324,6 +326,14 @@ function DeleteUserConfirmationDialog({
         <DialogContentText>
           Are you sure you want to delete the user <strong>{user?.username}</strong>? This action
           cannot be undone.
+          {currentUser?.username === user?.username && (
+            <Box>
+              <Typography variant="subtitle1" sx={{ color: "orangered" }}>
+                WARNING: This is the Current User. You will immediately lose access to the
+                application if you delete yourself.
+              </Typography>
+            </Box>
+          )}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
@@ -351,13 +361,16 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const { user } = useAuthStore();
 
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
       const response = await api.users.list();
       console.log("[fetchUsers] ", response);
-      setUsers(Array.isArray(response.data) ? response.data : response.data ? [response.data].flat() : []);
+      setUsers(
+        Array.isArray(response.data) ? response.data : response.data ? [response.data].flat() : []
+      );
     } catch (error) {
       handleApiError(error);
       setUsers([]);
@@ -568,6 +581,7 @@ export default function UserManagementPage() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteUser}
         user={selectedUser}
+        currentUser={user}
         isLoading={isDeletingUser}
       />
 
