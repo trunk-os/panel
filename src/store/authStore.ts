@@ -11,20 +11,13 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  needsSetup: boolean;
-  setupProgress: {
-    currentStep: number;
-    completedSteps: string[];
-  };
+  firstUser?: boolean | null;
   login: (credentials: Login, apiClient: ApiClient) => Promise<void>;
   logout: () => void;
   getToken: () => string | null;
   clearToken: () => void;
   initialize: (apiClient: ApiClient) => Promise<void>;
-  markSetupComplete: () => void;
-  checkSetupRequired: (apiClient: ApiClient) => Promise<boolean>;
-  updateSetupProgress: (step: number, completedSteps: string[]) => void;
-  resetSetupProgress: () => void;
+  setFirstUser: (isFirst: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,65 +27,12 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: true,
-      needsSetup: false,
-      setupProgress: {
-        currentStep: 0,
-        completedSteps: [],
-      },
+      firstUser: null,
 
       getToken: () => get().token,
 
       clearToken: () => {
         set({ user: null, token: null, isAuthenticated: false });
-      },
-
-      markSetupComplete: () => {
-        set({ 
-          needsSetup: false,
-          setupProgress: {
-            currentStep: 0,
-            completedSteps: [],
-          }
-        });
-      },
-
-      updateSetupProgress: (step: number, completedSteps: string[]) => {
-        set({ 
-          setupProgress: {
-            currentStep: step,
-            completedSteps,
-          }
-        });
-      },
-
-      resetSetupProgress: () => {
-        set({ 
-          setupProgress: {
-            currentStep: 0,
-            completedSteps: [],
-          }
-        });
-      },
-
-      checkSetupRequired: async (apiClient: ApiClient) => {
-        try {
-          const usersList = await apiClient.users.list();
-          const hasMultipleUsers = Array.isArray(usersList.data) && usersList.data.length > 1;
-          
-          const zfsList = await apiClient.zfs.list("");
-          const hasZFS = Array.isArray(zfsList.data) ? zfsList.data.length > 0 : zfsList.data?.entries?.length > 0;
-          
-          const currentUser = get().user;
-          const isFirstUser = !hasMultipleUsers && currentUser !== null;
-          
-          const needsSetup = isFirstUser && !hasZFS;
-          set({ needsSetup });
-          return needsSetup;
-        } catch (error) {
-          console.log("[authStore] Setup check failed:", error);
-          set({ needsSetup: false });
-          return false;
-        }
       },
 
       login: async (credentials: Login, apiClient: ApiClient) => {
@@ -107,11 +47,9 @@ export const useAuthStore = create<AuthState>()(
           });
           // get my user data
           const me: UserData = (await apiClient.session.me()).data;
-          const needsSetup = await get().checkSetupRequired(apiClient);
           set({
             user: me,
             isLoading: false,
-            needsSetup,
           });
         } catch (error) {
           console.log("[authStore] Login error:", error);
@@ -139,12 +77,10 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const me: UserData = (await apiClient.session.me()).data;
-          const needsSetup = await get().checkSetupRequired(apiClient);
           set({
             user: me,
             isAuthenticated: true,
             isLoading: false,
-            needsSetup,
           });
         } catch (error) {
           console.log("[authStore] Token validation failed:", error);
@@ -156,14 +92,16 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+      setFirstUser: async (isFirst: boolean) => {
+        set({ firstUser: isFirst });
+      },
     }),
     {
       name: "trunk-admin-auth",
       storage: createSecureStorage(),
       partialize: (state) => ({
         token: state.token,
-        needsSetup: state.needsSetup,
-        setupProgress: state.setupProgress,
+        firstUser: state.firstUser,
       }),
       onRehydrateStorage: () => () => {
         // Storage rehydrated

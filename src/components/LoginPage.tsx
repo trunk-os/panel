@@ -27,7 +27,7 @@ export function LoginPage() {
   const [error, setError] = useState<string>("");
   const [showCreateUser, setShowCreateUser] = useState(false);
 
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, setFirstUser, firstUser } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,9 +35,14 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true });
+      // After successful login
+      if (firstUser) {
+        navigate("/setup"); // Guard will redirect to dashboard if setup complete
+      } else {
+        navigate(from, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, firstUser, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +74,7 @@ export function LoginPage() {
       username: user.username,
       password: user.password,
     });
+    setFirstUser(true);
     setShowCreateUser(false);
   };
 

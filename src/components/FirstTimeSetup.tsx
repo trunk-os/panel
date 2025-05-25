@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { StorageSetupStep } from "./setup/StorageSetupStep";
 import { UserCreationStep } from "./setup/UserCreationStep";
-import { useAuthStore } from "@/store/authStore";
+import { useSetupStore } from "@/store/setupStore";
 
 interface SetupStepProps {
   onNext: () => void;
@@ -32,7 +32,7 @@ export default function FirstTimeSetup() {
   const [activeStep, setActiveStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [showSkipDialog, setShowSkipDialog] = useState(false);
-  const { markSetupComplete, setupProgress, updateSetupProgress } = useAuthStore();
+  const { markSetupComplete, setupProgress, updateSetupProgress } = useSetupStore();
 
   useEffect(() => {
     setActiveStep(setupProgress.currentStep);
@@ -49,6 +49,7 @@ export default function FirstTimeSetup() {
     if (newStep >= steps.length) {
       setIsComplete(true);
       markSetupComplete();
+      navigate("/dashboard", { replace: true });
     } else {
       setActiveStep(newStep);
       updateSetupProgress(newStep, newCompletedSteps);
@@ -164,8 +165,8 @@ export default function FirstTimeSetup() {
           <DialogTitle id="skip-dialog-title">Skip First-Time Setup?</DialogTitle>
           <DialogContent>
             <DialogContentText id="skip-dialog-description">
-              Are you sure you want to skip the first-time setup? You can always access it later
-              from your user menu to configure storage and create additional users.
+              Are you sure you want to skip the first-time setup? You will need to create storage,
+              and possibly, users, through the management pages on your own.
             </DialogContentText>
           </DialogContent>
           <DialogActions>

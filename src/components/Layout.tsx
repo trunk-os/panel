@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ApiStatusIndicator from "./ApiStatusIndicator";
-import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
+import { Outlet, Link as RouterLink } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -84,9 +84,8 @@ const menuItems = [
 
 export default function Layout() {
   const theme = useTheme();
-  const navigate = useNavigate();
   const { mode, toggleTheme } = useThemeStore();
-  const { user, logout, needsSetup, setupProgress } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -106,11 +105,6 @@ export default function Layout() {
   const handleLogout = async () => {
     handleUserMenuClose();
     await logout();
-  };
-
-  const handleGoToSetup = () => {
-    handleUserMenuClose();
-    navigate("/setup");
   };
 
   const drawer = (
@@ -222,24 +216,6 @@ export default function Layout() {
                   </ListItemIcon>
                   <ListItemText primary={user?.username || "User"} />
                 </MenuItem>
-                <Divider />
-                {needsSetup && (
-                  <MenuItem onClick={handleGoToSetup}>
-                    <ListItemIcon>
-                      <span className="material-symbols-outlined">settings</span>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="First-Time Setup"
-                      secondary="Incomplete"
-                    />
-                    <Chip
-                      label={`Step ${setupProgress.currentStep + 1}`}
-                      size="small"
-                      color="warning"
-                      variant="outlined"
-                    />
-                  </MenuItem>
-                )}
                 <Divider />
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>

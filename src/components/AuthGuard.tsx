@@ -8,7 +8,7 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, needsSetup } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,10 +18,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
         replace: true,
         state: { from: location.pathname }
       });
-    } else if (!isLoading && isAuthenticated && needsSetup && location.pathname !== "/setup") {
-      navigate("/setup", { replace: true });
     }
-  }, [isAuthenticated, isLoading, needsSetup, navigate, location.pathname]);
+  }, [isAuthenticated, isLoading, navigate, location.pathname]);
 
   if (isLoading) {
     return (
