@@ -94,7 +94,7 @@ export function LoginPage() {
             <Stack spacing={3}>
               <Box textAlign="center">
                 <Typography variant="h4" component="h1">
-                  Welcome Back
+                  Welcome to Trunk
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Sign in to your account
