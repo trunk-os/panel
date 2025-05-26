@@ -84,7 +84,7 @@ export default function AuditLog() {
       };
 
       const response = await api.status.log(pagination);
-      const logs = response.data;
+      const logs = response.data.reverse();
 
       setState((prev) => ({
         ...prev,
@@ -310,28 +310,77 @@ export default function AuditLog() {
                               <Typography variant="h6" gutterBottom component="div">
                                 Additional Details
                               </Typography>
-                              <Paper
-                                sx={{
-                                  p: 2,
-                                  bgcolor: "background.default",
-                                  border: 1,
-                                  borderColor: "divider",
-                                }}
-                              >
-                                <Typography
-                                  component="pre"
-                                  variant="body2"
-                                  fontFamily="monospace"
-                                  sx={{
-                                    whiteSpace: "pre-wrap",
-                                    wordBreak: "break-word",
-                                    fontSize: "0.75rem",
-                                    color: "text.primary",
-                                  }}
-                                >
-                                  {formatJsonData(log.data)}
-                                </Typography>
-                              </Paper>
+                              {(() => {
+                                try {
+                                  const parsedData = JSON.parse(log.data);
+                                  if (typeof parsedData === "object" && parsedData !== null) {
+                                    const entries = Object.entries(parsedData);
+                                    if (entries.length > 0) {
+                                      return (
+                                        <TableContainer
+                                          component={Paper}
+                                          sx={{ border: 1, borderColor: "divider" }}
+                                        >
+                                          <Table size="small">
+                                            <TableHead>
+                                              <TableRow>
+                                                {entries.map(([key]) => (
+                                                  <TableCell key={key} sx={{ fontWeight: "bold" }}>
+                                                    {key}
+                                                  </TableCell>
+                                                ))}
+                                              </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                              <TableRow>
+                                                {entries.map(([key, value]) => (
+                                                  <TableCell
+                                                    key={key}
+                                                    sx={{
+                                                      fontFamily: "monospace",
+                                                      fontSize: "0.75rem",
+                                                    }}
+                                                  >
+                                                    {typeof value === "object" && value !== null
+                                                      ? JSON.stringify(value, null, 2)
+                                                      : String(value)}
+                                                  </TableCell>
+                                                ))}
+                                              </TableRow>
+                                            </TableBody>
+                                          </Table>
+                                        </TableContainer>
+                                      );
+                                    }
+                                  }
+                                } catch {
+                                  // Fall back to formatted JSON display
+                                }
+                                return (
+                                  <Paper
+                                    sx={{
+                                      p: 2,
+                                      bgcolor: "background.default",
+                                      border: 1,
+                                      borderColor: "divider",
+                                    }}
+                                  >
+                                    <Typography
+                                      component="pre"
+                                      variant="body2"
+                                      fontFamily="monospace"
+                                      sx={{
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-word",
+                                        fontSize: "0.75rem",
+                                        color: "text.primary",
+                                      }}
+                                    >
+                                      {formatJsonData(log.data)}
+                                    </Typography>
+                                  </Paper>
+                                );
+                              })()}
                               {log.error && (
                                 <>
                                   <Typography
