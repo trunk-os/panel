@@ -127,7 +127,7 @@ export function LoginPage() {
 
                   {error && (
                     <Typography variant="body2" color="error">
-                      {error}
+                      Authentication failed
                     </Typography>
                   )}
 
