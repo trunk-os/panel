@@ -86,3 +86,20 @@ export interface Login {
 export interface Token {
   token: string;
 }
+
+export interface AuditLog {
+  id: number;
+  user_id: number | null;
+  time: string;
+  entry: string;
+  endpoint: string;
+  ip: string;
+  data: string;
+  error: string | null;
+}
+
+export interface Pagination {
+  since?: string;
+  perPage?: number;
+  page?: number;
+}

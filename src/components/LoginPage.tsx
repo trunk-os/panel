@@ -33,16 +33,16 @@ export function LoginPage() {
 
   const from = location.state?.from || "/dashboard";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We don't want to trigger on firstUser, we want to trigger on isAuthenticated
   useEffect(() => {
     if (isAuthenticated) {
-      // After successful login
       if (firstUser) {
-        navigate("/setup"); // Guard will redirect to dashboard if setup complete
+        navigate("/setup", { replace: true });
       } else {
         navigate(from, { replace: true });
       }
     }
-  }, [isAuthenticated, firstUser, navigate, from]);
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -11,6 +11,8 @@ import type {
   Login,
   Token,
   SystemStatusResult,
+  AuditLog,
+  Pagination,
 } from "./types";
 import { ApiError } from "./errors";
 import { useAuthStore } from "@/store/authStore";
@@ -120,6 +122,8 @@ export const api = {
 
   status: {
     ping: () => api.get<SystemStatusResult>("/status/ping"),
+    log: (pagination: Pagination, options?: RequestInit) =>
+      api.post<AuditLog[]>("/status/log", pagination, options),
   },
 
   zfs: {
