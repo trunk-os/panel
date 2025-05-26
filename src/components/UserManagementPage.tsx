@@ -24,8 +24,6 @@ import {
   Snackbar,
   Tooltip,
   Checkbox,
-  Stack,
-  Divider,
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -390,7 +388,7 @@ export default function UserManagementPage() {
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState<number | null>(null);
-  const { user } = useAuthStore();
+  const { user: currentUser, logout } = useAuthStore();
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -455,10 +453,15 @@ export default function UserManagementPage() {
     if (selectedUser) {
       setIsDeletingUser(true);
       try {
+        console.log("[handleDeleteUser] ", selectedUser, currentUser);
         await api.users.destroy(Number(selectedUser.id));
-        refetch();
-        setDeleteDialogOpen(false);
-        setSelectedUser(null);
+        if (selectedUser.id === currentUser?.id) {
+          logout();
+        } else {
+          refetch();
+          setDeleteDialogOpen(false);
+          setSelectedUser(null);
+        }
       } catch (error) {
         handleApiError(error);
       } finally {
@@ -611,7 +614,7 @@ export default function UserManagementPage() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteUser}
         user={selectedUser}
-        currentUser={user}
+        currentUser={currentUser}
         isLoading={isDeletingUser}
       />
 
