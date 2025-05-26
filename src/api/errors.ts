@@ -25,14 +25,6 @@ export class ApiError extends Error {
 }
 
 /**
- * Standard API response wrapper with data and status code
- */
-export type ApiResponse<T> = {
-  data: T;
-  statusCode: number;
-};
-
-/**
  * Problem Details (RFC7807)
  */
 export interface ProblemDetails {

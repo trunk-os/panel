@@ -1,45 +1,43 @@
-import { useState, useEffect } from "react";
 import MetricCard from "./MetricCard";
+import { useApiStatusStore } from "@/store/apiStatusStore";
 
 interface DiskMetricCardProps {
   collapsed?: boolean;
 }
 
 export default function DiskMetricCard({ collapsed = false }: DiskMetricCardProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [diskUsage, setDiskUsage] = useState<number | string | undefined>();
-  const [availableSpace, setAvailableSpace] = useState<number | string | undefined>();
-  const [usagePercent, setUsagePercent] = useState<number | undefined>();
+  const { systemStatus, status } = useApiStatusStore();
+  const isLoading = status === "loading" || !systemStatus;
 
-  // Simulate loading disk metrics from API
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Mock values
-      const totalSpace = 500; // 500 GB
-      const used = 320; // 320 GB
-      const available = totalSpace - used;
-      const percent = Math.round((used / totalSpace) * 100);
+  const formatBytes = (bytes: number): number => Math.round(bytes / 1024 ** 3);
 
-      setDiskUsage(used);
-      setAvailableSpace(available);
-      setUsagePercent(percent);
-      setIsLoading(false);
-    }, 1200);
+  const totalDisk = systemStatus ? formatBytes(systemStatus.total_disk) : undefined;
+  const availableDisk = systemStatus ? formatBytes(systemStatus.available_disk) : undefined;
+  const usedDisk = totalDisk && availableDisk ? totalDisk - availableDisk : undefined;
+  const usagePercent = totalDisk && usedDisk ? Math.round((usedDisk / totalDisk) * 100) : undefined;
 
-    return () => clearTimeout(timer);
-  }, []);
-
+  if (systemStatus?.total_disk && systemStatus.total_disk > 0) {
+    return (
+      <MetricCard
+        title="Disk"
+        value={usedDisk}
+        unit="GB"
+        isLoading={isLoading}
+        progress={usagePercent}
+        secondaryValue={availableDisk}
+        secondaryLabel="Available"
+        color="info"
+        collapsed={collapsed}
+      />
+    );
+  }
   return (
     <MetricCard
       title="Disk"
-      value={diskUsage}
-      unit="GB"
+      value="unknown"
       isLoading={isLoading}
-      progress={usagePercent}
-      secondaryValue={availableSpace}
-      secondaryLabel="Available"
-      color="info"
       collapsed={collapsed}
+      color="info"
     />
   );
 }

@@ -31,7 +31,6 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import type { ZFSEntry, ZFSList } from "@/api/types";
 
-// Convert size string to kb
 function calculateSize(size: string): number {
   if (!size) return 0;
 
@@ -43,15 +42,15 @@ function calculateSize(size: string): number {
 
   switch (unit) {
     case "T":
-      return value * 1024 * 1024 * 1024; // TB to KB
+      return value * 1024 * 1024 * 1024 * 1024; // TB to bytes
     case "G":
-      return value * 1024 * 1024; // GB to KB
+      return value * 1024 * 1024 * 1024; // GB to bytes
     case "M":
-      return value * 1024; // MB to KB
+      return value * 1024 * 1024; // MB to bytes
     case "K":
-      return value; // KB to KB
+      return value * 1024; // KB to bytes
     default:
-      return value / 1024; // Bytes to KB
+      return value; // bytes to bytes
   }
 }
 
@@ -112,8 +111,8 @@ function CreateDatasetDialog({
     if (nameError || !name) return;
 
     if (quota) {
-      const quotaInKB = calculateSize(`${quota}${quotaUnit}B`);
-      onSubmit(name, quotaInKB);
+      const quotaInBytes = calculateSize(`${quota}${quotaUnit}B`);
+      onSubmit(name, quotaInBytes);
     } else {
       onSubmit(name, undefined);
     }
@@ -229,8 +228,8 @@ function CreateVolumeDialog({
   const handleSubmit = () => {
     if (nameError || !name || !size) return;
 
-    const sizeInKB = calculateSize(`${size}${sizeUnit}B`);
-    onSubmit(name, sizeInKB);
+    const sizeInBytes = calculateSize(`${size}${sizeUnit}B`);
+    onSubmit(name, sizeInBytes);
   };
 
   const handleClose = () => {

@@ -45,7 +45,6 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
-// Convert size string to kb
 function calculateSize(size: string): number {
   if (!size) return 0;
   
@@ -57,15 +56,15 @@ function calculateSize(size: string): number {
   
   switch (unit) {
     case "T":
-      return value * 1024 * 1024 * 1024; // TB to KB
+      return value * 1024 * 1024 * 1024 * 1024; // TB to bytes
     case "G":
-      return value * 1024 * 1024; // GB to KB
+      return value * 1024 * 1024 * 1024; // GB to bytes
     case "M":
-      return value * 1024; // MB to KB
+      return value * 1024 * 1024; // MB to bytes
     case "K":
-      return value; // KB to KB
+      return value * 1024; // KB to bytes
     default:
-      return value / 1024; // Bytes to KB
+      return value; // bytes to bytes
   }
 }
 
@@ -85,8 +84,8 @@ function CreateInitialDatasetDialog({
   const [quotaUnit, setQuotaUnit] = useState("G");
 
   const handleSubmit = () => {
-    const quotaInKB = calculateSize(`${quota}${quotaUnit}B`);
-    onSubmit(name, quotaInKB);
+    const quotaInBytes = calculateSize(`${quota}${quotaUnit}B`);
+    onSubmit(name, quotaInBytes);
   };
 
   const handleClose = () => {

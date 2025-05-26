@@ -98,7 +98,6 @@ export default function SystemStatusCard({ collapsed = false }: SystemStatusCard
                 </>
               )}
             </Box>
-
             <Typography
               variant="caption"
               color="text.secondary"

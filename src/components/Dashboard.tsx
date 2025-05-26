@@ -7,6 +7,7 @@ import NetworkMetricCard from "./metrics/NetworkMetricCard";
 import VMMetricCard from "./metrics/VMMetricCard";
 import ObjectStorageMetricCard from "./metrics/ObjectStorageMetricCard";
 import SkeletonCard from "./SkeletonCard";
+import { useApiStatusStore } from "@/store/apiStatusStore";
 
 const drawerWidth = 240;
 const cardHeight = 240;
@@ -14,9 +15,8 @@ const cardHeight = 240;
 export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { systemStatus } = useApiStatusStore();
 
-  const [vmData, setVmData] = useState<{ active: number; cpus: number; memory: string } | undefined>();
-  const [storageData, setStorageData] = useState<{ objects: number; used: string; available: string } | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -24,6 +24,20 @@ export default function Dashboard() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const [showDebug] = useState(false);
+
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (days > 0) {
+      return `${days} day${days !== 1 ? "s" : ""}, ${hours} hour${hours !== 1 ? "s" : ""}`;
+    }
+    if (hours > 0) {
+      return `${hours} hour${hours !== 1 ? "s" : ""}, ${minutes} minute${minutes !== 1 ? "s" : ""}`;
+    }
+    return `${minutes} minute${minutes !== 1 ? "s" : ""}`;
+  };
 
   useEffect(() => {
     if (!metricsRef.current) return;
@@ -67,8 +81,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setVmData({ active: 12, cpus: 48, memory: "256 GB" });
-      setStorageData({ objects: 1847293, used: "2.4 TB", available: "12.6 TB" });
       setIsLoading(false);
     }, 1500);
 
@@ -102,9 +114,23 @@ export default function Dashboard() {
       )}
       <Box>
         <Typography variant="h2">Dashboard</Typography>
-        <Typography variant="body1" color="text.secondary">
-          Welcome to the Trunk Admin dashboard
-        </Typography>
+        {systemStatus ? (
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, flexWrap: "wrap", gap: 2 }}>
+            <Typography variant="body1" color="text.secondary">
+              Host: {systemStatus.host_name}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Kernel: {systemStatus.kernel_version}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Uptime: {formatUptime(systemStatus.uptime)}
+            </Typography>
+          </Box>
+        ) : (
+          <Typography variant="body1" color="text.secondary">
+            Loading system information...
+          </Typography>
+        )}
       </Box>
 
       {isCollapsed && (

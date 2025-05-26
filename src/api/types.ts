@@ -1,29 +1,28 @@
 // API response types
 
-export interface SystemStatusResponse {
-  status: "ok" | "error" | "warning";
-  message?: string;
-  uptime?: number;
-  version?: string;
-  services?: {
-    name: string;
-    status: "ok" | "error" | "warning";
-    message?: string;
-  }[];
-  timestamp: string;
-}
+/**
+ * Standard API response wrapper with data and status code
+ */
+export type ApiResponse<T> = {
+  data: T;
+  statusCode: number;
+};
 
 export interface SystemStatus {
-  status: "ok" | "error" | "warning";
-  message?: string;
-  uptime?: number;
-  version?: string;
-  services?: {
-    name: string;
-    status: "ok" | "error" | "warning";
-    message?: string;
-  }[];
-  timestamp: Date;
+  uptime: number;
+  available_memory: number;
+  total_memory: number;
+  cpus: number;
+  cpu_usage: number;
+  host_name: string;
+  kernel_version: string;
+  load_average: number[];
+  processes: number;
+  total_disk: number;
+  available_disk: number;
+}
+export interface SystemStatusResult {
+  info: SystemStatus;
 }
 
 export type ZFSType = "Dataset" | "Volume";

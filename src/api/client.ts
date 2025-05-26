@@ -1,5 +1,6 @@
 import { decode, encode } from "cbor2";
 import type {
+  ApiResponse,
   ZFSList,
   ZFSDataset,
   ZFSVolume,
@@ -9,11 +10,12 @@ import type {
   UserUpdateRequest,
   Login,
   Token,
+  SystemStatusResult,
 } from "./types";
-import { ApiError, type ApiResponse } from "./errors";
+import { ApiError } from "./errors";
 import { useAuthStore } from "@/store/authStore";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://islay:5309";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5309";
 
 const handleErrorResponse = async (response: Response) => {
   if (response.status === 401) {
@@ -117,14 +119,7 @@ export const api = {
     fetchApi<T>(endpoint, { ...options, method: "DELETE" }),
 
   status: {
-    ping: async (): Promise<boolean> => {
-      try {
-        await api.get("/status/ping");
-        return true;
-      } catch (_) {
-        return false;
-      }
-    },
+    ping: () => api.get<SystemStatusResult>("/status/ping"),
   },
 
   zfs: {
