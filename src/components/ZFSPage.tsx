@@ -14,15 +14,6 @@ import {
   TableRow,
   Paper,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   IconButton,
   Alert,
   Snackbar,
@@ -30,35 +21,12 @@ import {
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import type { ZFSEntry, ZFSList } from "@/api/types";
-
-function calculateSize(size: string): number {
-  if (!size) return 0;
-
-  const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?)B?$/i);
-  if (!match) return Number.parseInt(size) || 0;
-
-  const value = Number.parseFloat(match[1]);
-  const unit = match[2].toUpperCase();
-
-  switch (unit) {
-    case "T":
-      return value * 1024 * 1024 * 1024 * 1024; // TB to bytes
-    case "G":
-      return value * 1024 * 1024 * 1024; // GB to bytes
-    case "M":
-      return value * 1024 * 1024; // MB to bytes
-    case "K":
-      return value * 1024; // KB to bytes
-    default:
-      return value; // bytes to bytes
-  }
-}
-
-// Input validation functions
-function isValidName(name: string): boolean {
-  return /^[a-zA-Z0-9]+$/.test(name);
-}
+import type { ZFSEntry, ZFSList, ZFSModifyDataset, ZFSModifyVolume } from "@/api/types";
+import CreateDatasetDialog from "@/components/dialogs/zfs/CreateDatasetDialog";
+import CreateVolumeDialog from "@/components/dialogs/zfs/CreateVolumeDialog";
+import ModifyDatasetDialog from "@/components/dialogs/zfs/ModifyDatasetDialog";
+import ModifyVolumeDialog from "@/components/dialogs/zfs/ModifyVolumeDialog";
+import DestroyConfirmationDialog from "@/components/dialogs/zfs/DestroyConfirmationDialog";
 
 // Helper function to format bytes to human-readable format
 function formatBytes(bytes: number, decimals = 2) {
@@ -73,271 +41,6 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
-function CreateDatasetDialog({
-  open,
-  onClose,
-  onSubmit,
-  isLoading,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (name: string, quota?: number) => void;
-  isLoading: boolean;
-}) {
-  const [name, setName] = useState("");
-  const [quota, setQuota] = useState("");
-  const [quotaUnit, setQuotaUnit] = useState("G");
-  const [nameError, setNameError] = useState("");
-
-  const validateName = (value: string) => {
-    if (!value) {
-      setNameError("");
-      return;
-    }
-
-    if (!isValidName(value)) {
-      setNameError("Name must contain only alphanumeric characters");
-    } else {
-      setNameError("");
-    }
-  };
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setName(value);
-    validateName(value);
-  };
-
-  const handleSubmit = () => {
-    if (nameError || !name) return;
-
-    if (quota) {
-      const quotaInBytes = calculateSize(`${quota}${quotaUnit}B`);
-      onSubmit(name, quotaInBytes);
-    } else {
-      onSubmit(name, undefined);
-    }
-  };
-
-  const handleClose = () => {
-    setName("");
-    setQuota("");
-    setQuotaUnit("G");
-    setNameError("");
-    onClose();
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create Dataset</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Create a new dataset with optional quota.</DialogContentText>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="name"
-          label="Dataset Name"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={name}
-          onChange={handleNameChange}
-          error={!!nameError}
-          helperText={nameError || "Only alphanumeric characters allowed"}
-          sx={{ mb: 2 }}
-        />
-        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-          <TextField
-            margin="dense"
-            id="quota"
-            label="Quota (optional)"
-            type="number"
-            variant="outlined"
-            value={quota}
-            onChange={(e) => setQuota(e.target.value)}
-            sx={{ flex: 2 }}
-            helperText="Leave empty for no quota"
-          />
-          <FormControl sx={{ flex: 1, mt: 1 }}>
-            <InputLabel id="quota-unit-label">Unit</InputLabel>
-            <Select
-              labelId="quota-unit-label"
-              id="quota-unit"
-              value={quotaUnit}
-              label="Unit"
-              onChange={(e) => setQuotaUnit(e.target.value)}
-            >
-              <MenuItem value="K">KB</MenuItem>
-              <MenuItem value="M">MB</MenuItem>
-              <MenuItem value="G">GB</MenuItem>
-              <MenuItem value="T">TB</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={isLoading || !name || !!nameError}
-        >
-          {isLoading ? <CircularProgress size={24} /> : "Create"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
-function CreateVolumeDialog({
-  open,
-  onClose,
-  onSubmit,
-  isLoading,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (name: string, size: number) => void;
-  isLoading: boolean;
-}) {
-  const [name, setName] = useState("");
-  const [size, setSize] = useState(0);
-  const [sizeUnit, setSizeUnit] = useState("G");
-  const [nameError, setNameError] = useState("");
-
-  const validateName = (value: string) => {
-    if (!value) {
-      setNameError("");
-      return;
-    }
-
-    if (!isValidName(value)) {
-      setNameError("Name must contain only alphanumeric characters");
-    } else {
-      setNameError("");
-    }
-  };
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setName(value);
-    validateName(value);
-  };
-
-  const handleSubmit = () => {
-    if (nameError || !name || !size) return;
-
-    const sizeInBytes = calculateSize(`${size}${sizeUnit}B`);
-    onSubmit(name, sizeInBytes);
-  };
-
-  const handleClose = () => {
-    setName("");
-    setSize(0);
-    setSizeUnit("G");
-    setNameError("");
-    onClose();
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create Volume</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Create a new volume with specified size.</DialogContentText>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="name"
-          label="Volume Name"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={name}
-          onChange={handleNameChange}
-          error={!!nameError}
-          helperText={nameError || "Only alphanumeric characters allowed"}
-          sx={{ mb: 2 }}
-        />
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <TextField
-            margin="dense"
-            id="size"
-            label="Size"
-            type="number"
-            variant="outlined"
-            value={size}
-            onChange={(e) => setSize(Number.parseFloat(e.target.value) || 0)}
-            sx={{ flex: 2 }}
-          />
-          <FormControl sx={{ flex: 1 }}>
-            <InputLabel id="size-unit-label">Unit</InputLabel>
-            <Select
-              labelId="size-unit-label"
-              id="size-unit"
-              value={sizeUnit}
-              label="Unit"
-              onChange={(e) => setSizeUnit(e.target.value)}
-            >
-              <MenuItem value="K">KB</MenuItem>
-              <MenuItem value="M">MB</MenuItem>
-              <MenuItem value="G">GB</MenuItem>
-              <MenuItem value="T">TB</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={isLoading || !name || !size || !!nameError}
-        >
-          {isLoading ? <CircularProgress size={24} /> : "Create"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
-function DestroyConfirmationDialog({
-  open,
-  onClose,
-  onConfirm,
-  name,
-  isLoading,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  name: string;
-  isLoading: boolean;
-}) {
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirm Destruction</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Are you sure you want to destroy the dataset/volume <strong>{name}</strong>? This action
-          cannot be undone.
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button onClick={onConfirm} variant="contained" color="error" disabled={isLoading}>
-          {isLoading ? <CircularProgress size={24} /> : "Destroy"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
 export default function ZFSPage() {
   const [filter, setFilter] = useState("");
   const [allEntries, setAllEntries] = useState<ZFSList | null>(null);
@@ -349,6 +52,8 @@ export default function ZFSPage() {
 
   const [createDatasetOpen, setCreateDatasetOpen] = useState(false);
   const [createVolumeOpen, setCreateVolumeOpen] = useState(false);
+  const [modifyDatasetOpen, setModifyDatasetOpen] = useState(false);
+  const [modifyVolumeOpen, setModifyVolumeOpen] = useState(false);
   const [destroyDialogOpen, setDestroyDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<ZFSEntry | null>(null);
 
@@ -389,6 +94,8 @@ export default function ZFSPage() {
 
   const [isCreatingDataset, setIsCreatingDataset] = useState(false);
   const [isCreatingVolume, setIsCreatingVolume] = useState(false);
+  const [isModifyingDataset, setIsModifyingDataset] = useState(false);
+  const [isModifyingVolume, setIsModifyingVolume] = useState(false);
   const [isDestroying, setIsDestroying] = useState(false);
 
   const handleApiError = (error: unknown) => {
@@ -410,9 +117,10 @@ export default function ZFSPage() {
     setFilter(e.target.value);
   };
 
-  const filteredEntries = allEntries?.entries.filter((entry) =>
-    entry.name.toLowerCase().includes(filter.toLowerCase())
-  ) || [];
+  const filteredEntries =
+    allEntries?.entries.filter((entry) =>
+      entry.name.toLowerCase().includes(filter.toLowerCase())
+    ) || [];
 
   const handleCreateDataset = async (name: string, quota?: number) => {
     setIsCreatingDataset(true);
@@ -440,6 +148,34 @@ export default function ZFSPage() {
     }
   };
 
+  const handleModifyDataset = async (request: ZFSModifyDataset) => {
+    setIsModifyingDataset(true);
+    try {
+      await api.zfs.modifyDataset(request);
+      refetch();
+      setModifyDatasetOpen(false);
+      setSelectedEntry(null);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsModifyingDataset(false);
+    }
+  };
+
+  const handleModifyVolume = async (request: ZFSModifyVolume) => {
+    setIsModifyingVolume(true);
+    try {
+      await api.zfs.modifyVolume(request);
+      refetch();
+      setModifyVolumeOpen(false);
+      setSelectedEntry(null);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsModifyingVolume(false);
+    }
+  };
+
   const handleConfirmDestroy = async () => {
     if (selectedEntry) {
       setIsDestroying(true);
@@ -454,6 +190,16 @@ export default function ZFSPage() {
         setIsDestroying(false);
       }
     }
+  };
+
+  const openModifyDatasetDialog = (entry: ZFSEntry) => {
+    setSelectedEntry(entry);
+    setModifyDatasetOpen(true);
+  };
+
+  const openModifyVolumeDialog = (entry: ZFSEntry) => {
+    setSelectedEntry(entry);
+    setModifyVolumeOpen(true);
   };
 
   const openDestroyDialog = (entry: ZFSEntry) => {
@@ -486,11 +232,7 @@ export default function ZFSPage() {
                 sx={{ width: 300 }}
               />
               <Tooltip title="Refresh data">
-                <IconButton
-                  onClick={fetchZFSEntries}
-                  disabled={isRefreshing}
-                  size="small"
-                >
+                <IconButton onClick={fetchZFSEntries} disabled={isRefreshing} size="small">
                   {isRefreshing ? (
                     <CircularProgress size={20} />
                   ) : (
@@ -545,13 +287,23 @@ export default function ZFSPage() {
                             <TableCell>{formatBytes(entry.used)}</TableCell>
                             <TableCell>{formatBytes(entry.avail)}</TableCell>
                             <TableCell>
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => openDestroyDialog(entry)}
-                              >
-                                <span className="material-symbols-outlined">delete</span>
-                              </IconButton>
+                              <Box sx={{ display: "flex", gap: 1 }}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => openModifyDatasetDialog(entry)}
+                                  title="Modify dataset"
+                                >
+                                  <span className="material-symbols-outlined">edit</span>
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => openDestroyDialog(entry)}
+                                  title="Delete dataset"
+                                >
+                                  <span className="material-symbols-outlined">delete</span>
+                                </IconButton>
+                              </Box>
                             </TableCell>
                           </TableRow>
                         );
@@ -601,13 +353,23 @@ export default function ZFSPage() {
                           <TableCell>{formatBytes(entry.used)}</TableCell>
                           <TableCell>{formatBytes(entry.avail)}</TableCell>
                           <TableCell>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openDestroyDialog(entry)}
-                            >
-                              <span className="material-symbols-outlined">delete</span>
-                            </IconButton>
+                            <Box sx={{ display: "flex", gap: 1 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => openModifyVolumeDialog(entry)}
+                                title="Modify volume"
+                              >
+                                <span className="material-symbols-outlined">edit</span>
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => openDestroyDialog(entry)}
+                                title="Delete volume"
+                              >
+                                <span className="material-symbols-outlined">delete</span>
+                              </IconButton>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ))
@@ -638,6 +400,22 @@ export default function ZFSPage() {
         onClose={() => setCreateVolumeOpen(false)}
         onSubmit={handleCreateVolume}
         isLoading={isCreatingVolume}
+      />
+
+      <ModifyDatasetDialog
+        open={modifyDatasetOpen}
+        onClose={() => setModifyDatasetOpen(false)}
+        onSubmit={handleModifyDataset}
+        entry={selectedEntry}
+        isLoading={isModifyingDataset}
+      />
+
+      <ModifyVolumeDialog
+        open={modifyVolumeOpen}
+        onClose={() => setModifyVolumeOpen(false)}
+        onSubmit={handleModifyVolume}
+        entry={selectedEntry}
+        isLoading={isModifyingVolume}
       />
 
       <DestroyConfirmationDialog

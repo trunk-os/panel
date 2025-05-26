@@ -60,6 +60,16 @@ export interface ZFSVolume {
   size: number;
 }
 
+export interface ZFSModifyDataset {
+  name: string;
+  modifications: ZFSDataset;
+}
+
+export interface ZFSModifyVolume {
+  name: string;
+  modifications: ZFSVolume;
+}
+
 export interface UserData {
   id: number;
   username: string;

@@ -4,6 +4,8 @@ import type {
   ZFSList,
   ZFSDataset,
   ZFSVolume,
+  ZFSModifyDataset,
+  ZFSModifyVolume,
   UserCreateRequest,
   UserList,
   UserData,
@@ -132,6 +134,10 @@ export const api = {
       api.post<void>("/zfs/create_dataset", dataset, options),
     createVolume: (volume: ZFSVolume, options?: RequestInit) =>
       api.post<void>("/zfs/create_volume", volume, options),
+    modifyDataset: (request: ZFSModifyDataset, options?: RequestInit) =>
+      api.post<void>("/zfs/modify_dataset", request, options),
+    modifyVolume: (request: ZFSModifyVolume, options?: RequestInit) =>
+      api.post<void>("/zfs/modify_volume", request, options),
     destroy: (name: string, options?: RequestInit) => api.post<void>("/zfs/destroy", name, options),
   },
   users: {

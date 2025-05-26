@@ -16,7 +16,7 @@ import { useAuthStore } from "@/store/authStore";
 import { ApiError } from "@/api/errors";
 import { api } from "@/api/client";
 import type { Login, UserCreateRequest } from "@/api/types";
-import { CreateUserDialog } from "./CreateUserDialog";
+import { CreateUserDialog } from "./dialogs/user/CreateUserDialog";
 
 export function LoginPage() {
   const [formData, setFormData] = useState<Login>({
