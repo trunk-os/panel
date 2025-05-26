@@ -26,6 +26,7 @@ import {
   IconButton,
   Alert,
   Snackbar,
+  Tooltip,
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -339,11 +340,9 @@ function DestroyConfirmationDialog({
 
 export default function ZFSPage() {
   const [filter, setFilter] = useState("");
-  const [filterTimeout, setFilterTimeout] = useState<number | null>(null);
-
-  const [currentFilter, setCurrentFilter] = useState("");
-  const [zfsList, setZfsList] = useState<ZFSList | null>(null);
+  const [allEntries, setAllEntries] = useState<ZFSList | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
@@ -354,19 +353,28 @@ export default function ZFSPage() {
   const [selectedEntry, setSelectedEntry] = useState<ZFSEntry | null>(null);
 
   const fetchZFSEntries = async () => {
-    setIsLoading(true);
+    const loading = allEntries === null;
+    if (loading) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     try {
-      const response = await api.zfs.list(currentFilter);
+      const response = await api.zfs.list("");
       if (Array.isArray(response.data)) {
-        setZfsList({ entries: response.data });
+        setAllEntries({ entries: response.data });
       } else {
-        setZfsList(response.data);
+        setAllEntries(response.data);
       }
     } catch (error) {
       handleApiError(error);
-      setZfsList({ entries: [] });
+      setAllEntries({ entries: [] });
     } finally {
-      setIsLoading(false);
+      if (loading) {
+        setIsLoading(false);
+      } else {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -377,7 +385,7 @@ export default function ZFSPage() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: the function isn't going to change.
   useEffect(() => {
     fetchZFSEntries();
-  }, [currentFilter]);
+  }, []);
 
   const [isCreatingDataset, setIsCreatingDataset] = useState(false);
   const [isCreatingVolume, setIsCreatingVolume] = useState(false);
@@ -398,21 +406,13 @@ export default function ZFSPage() {
     setShowError(true);
   };
 
-  // Handle filter change with debounce
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFilter = e.target.value;
-    setFilter(newFilter);
-
-    if (filterTimeout) {
-      window.clearTimeout(filterTimeout);
-    }
-
-    const timeout = window.setTimeout(() => {
-      setCurrentFilter(newFilter);
-    }, 500);
-
-    setFilterTimeout(timeout);
+    setFilter(e.target.value);
   };
+
+  const filteredEntries = allEntries?.entries.filter((entry) =>
+    entry.name.toLowerCase().includes(filter.toLowerCase())
+  ) || [];
 
   const handleCreateDataset = async (name: string, quota?: number) => {
     setIsCreatingDataset(true);
@@ -475,15 +475,30 @@ export default function ZFSPage() {
           <Box
             sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}
           >
-            <TextField
-              label="Filter"
-              variant="outlined"
-              size="small"
-              value={filter}
-              onChange={handleFilterChange}
-              placeholder="Filter by name"
-              sx={{ width: 300 }}
-            />
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <TextField
+                label="Filter"
+                variant="outlined"
+                size="small"
+                value={filter}
+                onChange={handleFilterChange}
+                placeholder="Filter by name"
+                sx={{ width: 300 }}
+              />
+              <Tooltip title="Refresh data">
+                <IconButton
+                  onClick={fetchZFSEntries}
+                  disabled={isRefreshing}
+                  size="small"
+                >
+                  {isRefreshing ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <span className="material-symbols-outlined">refresh</span>
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
               <Button variant="outlined" onClick={() => setCreateDatasetOpen(true)}>
                 Create Dataset
@@ -517,9 +532,8 @@ export default function ZFSPage() {
                         <CircularProgress />
                       </TableCell>
                     </TableRow>
-                  ) : zfsList?.entries &&
-                    zfsList.entries.filter((entry) => entry.kind === "Dataset").length > 0 ? (
-                    zfsList.entries
+                  ) : filteredEntries.filter((entry) => entry.kind === "Dataset").length > 0 ? (
+                    filteredEntries
                       .filter((entry) => entry.kind === "Dataset")
                       .map((entry) => {
                         // For datasets: use size (will be quota when available) vs available, whichever is smaller
@@ -577,9 +591,8 @@ export default function ZFSPage() {
                         <CircularProgress />
                       </TableCell>
                     </TableRow>
-                  ) : zfsList?.entries &&
-                    zfsList.entries.filter((entry) => entry.kind === "Volume").length > 0 ? (
-                    zfsList.entries
+                  ) : filteredEntries.filter((entry) => entry.kind === "Volume").length > 0 ? (
+                    filteredEntries
                       .filter((entry) => entry.kind === "Volume")
                       .map((entry) => (
                         <TableRow key={entry.full_name}>
