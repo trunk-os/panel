@@ -27,6 +27,7 @@ import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
 import { useAuthStore } from "@/store/authStore";
 import trunkLogo from "@/assets/logos/new_trunk_header.png";
+import { useNavigate } from "react-router-dom";
 
 const drawerWidth = 240;
 
@@ -83,6 +84,7 @@ const menuItems = [
 ];
 
 export default function Layout() {
+  const navigate = useNavigate();
   const theme = useTheme();
   const { mode, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
@@ -161,6 +163,9 @@ export default function Layout() {
                   component="img"
                   src={trunkLogo}
                   alt="Trunk"
+                  onClick={() => {
+                    navigate("/dashboard");
+                  }}
                   sx={{
                     height: 30,
                     mr: 1,
