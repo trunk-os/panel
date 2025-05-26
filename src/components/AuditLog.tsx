@@ -21,9 +21,9 @@ import {
   Link,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
+import { UserDetailsModal } from "./UserDetailsModal";
 import type { AuditLog as AuditLogType, Pagination as PaginationType, UserList } from "@/api/types";
 
 interface AuditLogState {
@@ -36,10 +36,11 @@ interface AuditLogState {
   expandedRows: Set<number>;
   users: UserList;
   usersLoading: boolean;
+  userDetailsOpen: boolean;
+  selectedUserForDetails: number | null;
 }
 
 export default function AuditLog() {
-  const navigate = useNavigate();
   const [state, setState] = useState<AuditLogState>({
     logs: [],
     loading: true,
@@ -50,6 +51,8 @@ export default function AuditLog() {
     expandedRows: new Set(),
     users: [],
     usersLoading: true,
+    userDetailsOpen: false,
+    selectedUserForDetails: null,
   });
 
   const fetchUsers = async () => {
@@ -177,7 +180,11 @@ export default function AuditLog() {
   const handleUserClick = (userId: number | null, event: React.MouseEvent) => {
     event.stopPropagation();
     if (userId) {
-      navigate(`/users/${userId}`);
+      setState((prev) => ({
+        ...prev,
+        selectedUserForDetails: userId,
+        userDetailsOpen: true,
+      }));
     }
   };
 
@@ -386,6 +393,16 @@ export default function AuditLog() {
             </Button>
           </Stack>
         )}
+
+        <UserDetailsModal
+          open={state.userDetailsOpen}
+          onClose={() =>
+            setState((prev) => ({ ...prev, userDetailsOpen: false, selectedUserForDetails: null }))
+          }
+          userId={state.selectedUserForDetails}
+          onUserUpdated={() => fetchUsers()}
+          onUserDeleted={() => fetchUsers()}
+        />
       </CardContent>
     </Card>
   );

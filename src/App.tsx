@@ -7,7 +7,7 @@ import Layout from "@/components/Layout";
 import NotFound from "@/components/NotFound";
 import ZFSPage from "@/components/ZFSPage";
 import UserManagementPage from "@/components/UserManagementPage";
-import UserDetailsPage from "@/components/UserDetailsPage";
+import UserDetailsPage from "@/components/UserDetailsModal";
 import { LoginPage } from "@/components/LoginPage";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SetupGuard } from "@/components/SetupGuard";

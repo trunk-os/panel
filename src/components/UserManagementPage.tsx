@@ -1,5 +1,4 @@
 import { useState, useEffect, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -32,6 +31,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import type { UserData, UserCreateRequest, UserList, UserUpdateRequest } from "@/api/types";
 import { CreateUserDialog } from "./CreateUserDialog";
+import { UserDetailsModal } from "./UserDetailsModal";
 import { useAuthStore } from "@/store/authStore";
 
 function isValidEmail(email: string): boolean {
@@ -377,7 +377,6 @@ function DeleteUserConfirmationDialog({
 }
 
 export default function UserManagementPage() {
-  const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [users, setUsers] = useState<UserList>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -389,6 +388,8 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<number | null>(null);
   const { user } = useAuthStore();
 
   const fetchUsers = async () => {
@@ -478,7 +479,8 @@ export default function UserManagementPage() {
 
   const viewUserDetails = (userId: number) => {
     console.log(`[viewUserDetails] got ${userId}`);
-    navigate(`/users/${userId}`);
+    setSelectedUserForDetails(userId);
+    setUserDetailsOpen(true);
   };
   console.log("[UserManagmentPage] ", users);
   const filteredUsers = users.filter(
@@ -611,6 +613,18 @@ export default function UserManagementPage() {
         user={selectedUser}
         currentUser={user}
         isLoading={isDeletingUser}
+      />
+
+      <UserDetailsModal
+        open={userDetailsOpen}
+        onClose={() => setUserDetailsOpen(false)}
+        userId={selectedUserForDetails}
+        onUserUpdated={() => {
+          fetchUsers();
+        }}
+        onUserDeleted={() => {
+          fetchUsers();
+        }}
       />
 
       <Snackbar

@@ -1,11 +1,8 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback, type ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  Paper,
   CircularProgress,
   Button,
   Divider,
@@ -19,9 +16,13 @@ import {
   DialogContentText,
   DialogTitle,
   TextField,
+  Paper,
+  Checkbox,
 } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
+import { useAuthStore } from "@/store/authStore";
 import type { UserData, UserUpdateRequest } from "@/api/types";
 
 function isValidEmail(email: string): boolean {
@@ -302,14 +303,24 @@ function DeleteUserConfirmationDialog({
   onClose,
   onConfirm,
   user,
+  currentUser,
   isLoading,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   user: UserData | null;
+  currentUser: UserData | null;
   isLoading: boolean;
 }) {
+  const [warningUnderstood, setWarningUnderstood] = useState<boolean>(false);
+
+  const sameUser = currentUser?.username === user?.username;
+
+  const handleCheckboxChange = (_event: ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setWarningUnderstood(checked);
+  };
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Confirm Deletion</DialogTitle>
@@ -318,12 +329,37 @@ function DeleteUserConfirmationDialog({
           Are you sure you want to delete the user <strong>{user?.username}</strong>? This action
           cannot be undone.
         </DialogContentText>
+        {sameUser && (
+          <Paper square sx={{ padding: 2, margin: 2 }}>
+            <Box sx={{ display: "grid", justifyItems: "left" }}>
+              <Typography variant="subtitle1" sx={{ color: "orange" }}>
+                WARNING: This is the Current User. You will immediately lose access to the
+                application if you delete yourself.
+              </Typography>
+
+              <Box>
+                <Checkbox
+                  sx={{ paddingLeft: 0, marginLeft: 0 }}
+                  onChange={handleCheckboxChange}
+                  required
+                  inputProps={{ "aria-label": "Warning understood" }}
+                />{" "}
+                I have read and understood the above warning.
+              </Box>
+            </Box>
+          </Paper>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
-        <Button onClick={onConfirm} variant="contained" color="error" disabled={isLoading}>
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="error"
+          disabled={isLoading || (sameUser && !warningUnderstood)}
+        >
           {isLoading ? <CircularProgress size={24} /> : "Delete"}
         </Button>
       </DialogActions>
@@ -331,38 +367,32 @@ function DeleteUserConfirmationDialog({
   );
 }
 
-export default function UserDetailsPage() {
-  const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
+interface UserDetailsModalProps {
+  open: boolean;
+  onClose: () => void;
+  userId: number | null;
+  onUserUpdated?: () => void;
+  onUserDeleted?: () => void;
+}
+
+export function UserDetailsModal({
+  open,
+  onClose,
+  userId,
+  onUserUpdated,
+  onUserDeleted,
+}: UserDetailsModalProps) {
   const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showError, setShowError] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const { user: currentUser } = useAuthStore();
 
-  const fetchUserDetails = async () => {
-    if (!userId) return;
-
-    setIsLoading(true);
-    try {
-      const response = await api.users.get(Number(userId));
-      setUser(response.data);
-    } catch (error) {
-      handleApiError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: deps don't change in component
-  useEffect(() => {
-    fetchUserDetails();
-  }, [userId]);
-
-  const handleApiError = (error: unknown) => {
+  const handleApiError = useCallback((error: unknown) => {
     console.error("API Error:", error);
 
     let message = "An unknown error occurred";
@@ -375,11 +405,31 @@ export default function UserDetailsPage() {
 
     setErrorMessage(message);
     setShowError(true);
-  };
+  }, []);
 
-  const goBack = () => {
-    navigate("/users");
-  };
+  const fetchUserDetails = useCallback(async () => {
+    if (!userId) return;
+
+    setIsLoading(true);
+    try {
+      const response = await api.users.get(userId);
+      setUser(response.data);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, handleApiError]);
+
+  useEffect(() => {
+    if (open && userId) {
+      fetchUserDetails();
+    } else {
+      setUser(null);
+      setErrorMessage(null);
+      setShowError(false);
+    }
+  }, [open, userId, fetchUserDetails]);
 
   const handleEditUser = async (updatedUser: UserUpdateRequest) => {
     setIsEditingUser(true);
@@ -387,6 +437,7 @@ export default function UserDetailsPage() {
       await api.users.update(updatedUser);
       fetchUserDetails();
       setEditDialogOpen(false);
+      onUserUpdated?.();
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -399,10 +450,10 @@ export default function UserDetailsPage() {
 
     setIsDeletingUser(true);
     try {
-      await api.users.destroy(Number(userId));
+      await api.users.destroy(userId);
       setDeleteDialogOpen(false);
-      // Navigate back to users list after successful deletion
-      navigate("/users");
+      onUserDeleted?.();
+      onClose();
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -410,139 +461,92 @@ export default function UserDetailsPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!user && !isLoading) {
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <Box>
-          <Typography variant="h2">User Not Found</Typography>
-          <Button variant="outlined" onClick={goBack} sx={{ mt: 2 }}>
-            Back to User Management
-          </Button>
-        </Box>
-      </Box>
-    );
-  }
-
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <Typography variant="h2">User Details</Typography>
-          <Typography variant="body1" color="text.secondary">
-            View and manage user information
-          </Typography>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          User Details
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<span className="material-symbols-outlined">edit</span>}
-            onClick={() => setEditDialogOpen(true)}
+      </DialogTitle>
+      <DialogContent>
+        {isLoading ? (
+          <Box
+            sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}
           >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<span className="material-symbols-outlined">delete</span>}
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            Delete
-          </Button>
-          <Button variant="outlined" onClick={goBack}>
-            Back
-          </Button>
-        </Box>
-      </Box>
+            <CircularProgress />
+          </Box>
+        ) : !user ? (
+          <Alert severity="error">User not found</Alert>
+        ) : (
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="h6" gutterBottom>
+              User Information
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
 
-      {user && (
-        <>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                User Information
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Username
-                  </Typography>
-                  <Typography variant="body1">{user.username}</Typography>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    User ID
-                  </Typography>
-                  <Typography variant="body1">{user.id}</Typography>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Real Name
-                  </Typography>
-                  <Typography variant="body1">{user.realname || "-"}</Typography>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Email
-                  </Typography>
-                  <Typography variant="body1">{user.email || "-"}</Typography>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Phone
-                  </Typography>
-                  <Typography variant="body1">{user.phone || "-"}</Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                User Actions
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? "rgba(255, 255, 255, 0.05)"
-                      : "rgba(0, 0, 0, 0.03)",
-                  borderRadius: 2,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  minHeight: "150px",
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  User actions history will be implemented in a future update
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Username
                 </Typography>
-              </Paper>
-            </CardContent>
-          </Card>
-        </>
-      )}
+                <Typography variant="body1">{user.username}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  User ID
+                </Typography>
+                <Typography variant="body1">{user.id}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Real Name
+                </Typography>
+                <Typography variant="body1">{user.realname || "-"}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Email
+                </Typography>
+                <Typography variant="body1">{user.email || "-"}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Phone
+                </Typography>
+                <Typography variant="body1">{user.phone || "-"}</Typography>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions>
+        {user && (
+          <>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              Delete
+            </Button>
+          </>
+        )}
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
 
       <Snackbar
         open={showError}
@@ -560,7 +564,6 @@ export default function UserDetailsPage() {
         </Alert>
       </Snackbar>
 
-      {/* Dialogs */}
       <EditUserDialog
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
@@ -574,8 +577,32 @@ export default function UserDetailsPage() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteUser}
         user={user}
+        currentUser={currentUser}
         isLoading={isDeletingUser}
       />
+    </Dialog>
+  );
+}
+
+export default function UserDetailsPage() {
+  const navigate = useNavigate();
+
+  const goBack = () => {
+    navigate("/users");
+  };
+
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box>
+        <Typography variant="h2">User Details</Typography>
+        <Typography variant="body1" color="text.secondary">
+          This page is now replaced by the UserDetailsModal. Please navigate to User Management to view user details.
+        </Typography>
+        <Button variant="outlined" onClick={goBack} sx={{ mt: 2 }}>
+          Back to User Management
+        </Button>
+      </Box>
     </Box>
   );
 }
