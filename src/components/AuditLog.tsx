@@ -322,20 +322,13 @@ export default function AuditLog() {
                                           sx={{ border: 1, borderColor: "divider" }}
                                         >
                                           <Table size="small">
-                                            <TableHead>
-                                              <TableRow>
-                                                {entries.map(([key]) => (
-                                                  <TableCell key={key} sx={{ fontWeight: "bold" }}>
+                                            <TableBody>
+                                              {entries.map(([key, value]) => (
+                                                <TableRow key={key}>
+                                                  <TableCell sx={{ fontWeight: "bold", width: "30%" }}>
                                                     {key}
                                                   </TableCell>
-                                                ))}
-                                              </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                              <TableRow>
-                                                {entries.map(([key, value]) => (
                                                   <TableCell
-                                                    key={key}
                                                     sx={{
                                                       fontFamily: "monospace",
                                                       fontSize: "0.75rem",
@@ -345,8 +338,8 @@ export default function AuditLog() {
                                                       ? JSON.stringify(value, null, 2)
                                                       : String(value)}
                                                   </TableCell>
-                                                ))}
-                                              </TableRow>
+                                                </TableRow>
+                                              ))}
                                             </TableBody>
                                           </Table>
                                         </TableContainer>

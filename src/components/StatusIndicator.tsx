@@ -1,38 +1,30 @@
 import { Box, CircularProgress, Typography, Button, Tooltip, Skeleton } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useCallback, useState } from "react";
-import type { SystemStatus } from "@/api/types";
-import { ApiError } from "@/api/errors";
+import { useApiStatusStore } from "@/store/apiStatusStore";
 
 interface StatusIndicatorProps {
-  status: SystemStatus | null;
-  isLoading: boolean;
   isStale?: boolean;
-  error: ApiError | Error | null;
   onRetry?: () => void;
 }
 
-export default function StatusIndicator({
-  status,
-  isLoading,
-  isStale,
-  error,
-  onRetry,
-}: StatusIndicatorProps) {
+export default function StatusIndicator({ isStale, onRetry }: StatusIndicatorProps) {
+  const { status: apiStatus, checkApiStatus } = useApiStatusStore();
   const [failedAttempts, setFailedAttempts] = useState(0);
 
+  const isLoading = apiStatus === "loading";
+  const status = apiStatus;
+  const error = apiStatus === "error" ? new Error("API connection failed") : null;
+
   const handleRetry = useCallback(() => {
-    if (error && onRetry) {
-      onRetry();
+    if (error && (onRetry || checkApiStatus)) {
+      const retryFn = onRetry || checkApiStatus;
+      retryFn();
       setFailedAttempts((prev) => prev + 1);
     }
-  }, [error, onRetry]);
+  }, [error, onRetry, checkApiStatus]);
 
-  const isConnectionIssue =
-    error &&
-    (error.message.includes("Network error") ||
-      error.message.includes("timed out") ||
-      (error instanceof ApiError && error.statusCode === 408));
+  const isConnectionIssue = apiStatus === "error";
 
   if (isLoading && !status) {
     return (
@@ -58,12 +50,7 @@ export default function StatusIndicator({
   }
 
   if (isStale && status) {
-    const statusColor =
-      status.status === "ok"
-        ? "success.main"
-        : status.status === "warning"
-          ? "warning.main"
-          : "error.main";
+    const statusColor = status === "ok" ? "success.main" : "error.main";
 
     return (
       <Box
@@ -86,7 +73,7 @@ export default function StatusIndicator({
               opacity: 0.8, // Dim slightly to indicate refreshing
             }}
           >
-            {status.status.toUpperCase()}
+            {status.toUpperCase()}
           </Typography>
           <CircularProgress
             size={14}
@@ -105,12 +92,7 @@ export default function StatusIndicator({
   }
 
   if (isConnectionIssue && status) {
-    const statusColor =
-      status.status === "ok"
-        ? "success.main"
-        : status.status === "warning"
-          ? "warning.main"
-          : "error.main";
+    const statusColor = status === "ok" ? "success.main" : "error.main";
 
     return (
       <Box
@@ -134,7 +116,7 @@ export default function StatusIndicator({
               opacity: 0.8, // Dim slightly to indicate it's stale
             }}
           >
-            {status.status.toUpperCase()}
+            {status.toUpperCase()}
           </Typography>
         </Tooltip>
         {onRetry && (
@@ -231,12 +213,7 @@ export default function StatusIndicator({
     );
   }
 
-  const statusColor =
-    status.status === "ok"
-      ? "success.main"
-      : status.status === "warning"
-        ? "warning.main"
-        : "error.main";
+  const statusColor = status === "ok" ? "success.main" : "error.main";
 
   return (
     <Typography
@@ -250,7 +227,7 @@ export default function StatusIndicator({
         color: statusColor,
       }}
     >
-      {status.status.toUpperCase()}
+      {status.toUpperCase()}
     </Typography>
   );
 }

@@ -28,6 +28,7 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
 
     try {
       const result = await api.status.ping();
+      console.log("[checkApiStatus] ", result);
 
       if (result === undefined) {
         useAuthStore.getState().clearToken();

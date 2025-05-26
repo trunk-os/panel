@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from "react";
 import {
   Button,
@@ -58,7 +59,7 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
       };
       await api.users.create(userData);
       onUserCreated(userData);
-      handleClose();
+      handleClose("UserCreated");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -70,14 +71,16 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
     }
   };
 
-  const handleInputChange = (field: keyof UserCreateRequest) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-  };
+  const handleInputChange =
+    (field: keyof UserCreateRequest) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
+    };
 
-  const handleClose = () => {
+  const handleClose = (reason: string, _event?: unknown) => {
+    if (reason && reason === "backdropClick") return;
     setFormData({
       username: "",
       password: "",
@@ -92,7 +95,7 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} disableEscapeKeyDown onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Create New User</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
@@ -174,14 +177,20 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
               <Button
                 type="button"
                 variant="outlined"
-                onClick={handleClose}
+                onClick={() => handleClose("Cancelled")}
                 fullWidth
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !formData.username || !formData.password || !confirmPassword || formData.password !== confirmPassword}
+                disabled={
+                  isLoading ||
+                  !formData.username ||
+                  !formData.password ||
+                  !confirmPassword ||
+                  formData.password !== confirmPassword
+                }
                 variant="contained"
                 fullWidth
               >
