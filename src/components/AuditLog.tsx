@@ -12,25 +12,19 @@ import {
   TableRow,
   Paper,
   CircularProgress,
-  Pagination,
   Stack,
   Chip,
   Alert,
   Collapse,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Link,
-  Grid,
-  Divider,
 } from "@mui/material";
-import { KeyboardArrowDown, KeyboardArrowRight, Close as CloseIcon } from "@mui/icons-material";
+import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import type { AuditLog as AuditLogType, Pagination as PaginationType, UserData } from "@/api/types";
+import type { AuditLog as AuditLogType, Pagination as PaginationType, UserList } from "@/api/types";
 
 interface AuditLogState {
   logs: AuditLogType[];
@@ -38,26 +32,44 @@ interface AuditLogState {
   error: string | null;
   page: number;
   perPage: number;
-  totalPages: number;
+  hasNextPage: boolean;
   expandedRows: Set<number>;
-  userDialogOpen: boolean;
-  selectedUser: UserData | null;
-  userLoading: boolean;
+  users: UserList;
+  usersLoading: boolean;
 }
 
 export default function AuditLog() {
+  const navigate = useNavigate();
   const [state, setState] = useState<AuditLogState>({
     logs: [],
     loading: true,
     error: null,
     page: 1,
     perPage: 50,
-    totalPages: 1,
+    hasNextPage: false,
     expandedRows: new Set(),
-    userDialogOpen: false,
-    selectedUser: null,
-    userLoading: false,
+    users: [],
+    usersLoading: true,
   });
+
+  const fetchUsers = async () => {
+    setState((prev) => ({ ...prev, usersLoading: true }));
+
+    try {
+      const response = await api.users.list();
+      setState((prev) => ({
+        ...prev,
+        users: response.data,
+        usersLoading: false,
+      }));
+    } catch (_error) {
+      setState((prev) => ({
+        ...prev,
+        usersLoading: false,
+        users: [],
+      }));
+    }
+  };
 
   const fetchLogs = async (page: number, perPage: number) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -75,7 +87,7 @@ export default function AuditLog() {
         ...prev,
         logs,
         loading: false,
-        totalPages: Math.max(1, Math.ceil(logs.length / perPage)),
+        hasNextPage: logs.length === perPage,
       }));
     } catch (error) {
       const errorMessage = error instanceof ApiError ? error.message : "Failed to fetch audit logs";
@@ -92,8 +104,21 @@ export default function AuditLog() {
     fetchLogs(state.page, state.perPage);
   }, [state.page, state.perPage]);
 
-  const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
-    setState((prev) => ({ ...prev, page }));
+  // biome-ignore lint/correctness/useExhaustiveDependencies: do not need to depend on fetchUsers
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handlePrevPage = () => {
+    if (state.page > 1) {
+      setState((prev) => ({ ...prev, page: prev.page - 1 }));
+    }
+  };
+
+  const handleNextPage = () => {
+    if (state.hasNextPage) {
+      setState((prev) => ({ ...prev, page: prev.page + 1 }));
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -135,32 +160,25 @@ export default function AuditLog() {
     }
   };
 
-  const handleUserClick = async (userId: number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setState(prev => ({ ...prev, userLoading: true, userDialogOpen: true }));
-
-    try {
-      const response = await api.users.get(userId);
-      setState(prev => ({
-        ...prev,
-        selectedUser: response.data,
-        userLoading: false,
-      }));
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        userLoading: false,
-        selectedUser: null,
-      }));
-    }
+  const removeAboutBlank = (text: string) => {
+    return text.replace(/\[about:blank\] /g, "").trim();
   };
 
-  const handleCloseUserDialog = () => {
-    setState(prev => ({
-      ...prev,
-      userDialogOpen: false,
-      selectedUser: null,
-    }));
+  const findUser = (userId: number) => {
+    return state.users.find((user) => user.id === userId);
+  };
+
+  const getUserDisplayName = (userId: number | null) => {
+    if (!userId) return "none";
+    const user = findUser(userId);
+    return user ? user.username : "deleted";
+  };
+
+  const handleUserClick = (userId: number | null, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (userId) {
+      navigate(`/users/${userId}`);
+    }
   };
 
   if (state.loading) {
@@ -192,7 +210,7 @@ export default function AuditLog() {
               <TableRow>
                 <TableCell />
                 <TableCell>Time</TableCell>
-                <TableCell>User ID</TableCell>
+                <TableCell>User</TableCell>
                 <TableCell>Endpoint</TableCell>
                 <TableCell>IP Address</TableCell>
                 <TableCell>Status</TableCell>
@@ -221,17 +239,19 @@ export default function AuditLog() {
                       </TableCell>
                       <TableCell>{formatTimestamp(log.time)}</TableCell>
                       <TableCell>
-                        {log.user_id ? (
+                        {log.user_id && findUser(log.user_id) ? (
                           <Link
                             component="button"
                             variant="body2"
-                            onClick={(event) => handleUserClick(log.user_id!, event)}
+                            onClick={(event) => handleUserClick(log.user_id, event)}
                             sx={{ cursor: "pointer", textDecoration: "underline" }}
                           >
-                            {log.user_id}
+                            {getUserDisplayName(log.user_id)}
                           </Link>
                         ) : (
-                          "none"
+                          <Typography variant="body2" color="text.secondary">
+                            {getUserDisplayName(log.user_id)}
+                          </Typography>
                         )}
                       </TableCell>
                       <TableCell>
@@ -260,78 +280,88 @@ export default function AuditLog() {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography
-                          variant="body2"
-                          fontFamily="monospace"
-                          sx={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}
-                        >
-                          {log.data}
-                        </Typography>
+                        {hasJsonData ? (
+                          <Typography variant="body2" color="primary" sx={{ fontStyle: "italic" }}>
+                            more...
+                          </Typography>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            color="text.disabled"
+                            sx={{ fontStyle: "italic" }}
+                          >
+                            —
+                          </Typography>
+                        )}
                       </TableCell>
                     </TableRow>
                     {hasJsonData && (
                       <TableRow key={`${log.id}-expanded`}>
                         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
                           <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                          <Box sx={{ margin: 1 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                              JSON Data
-                            </Typography>
-                            <Paper sx={{ 
-                              p: 2, 
-                              bgcolor: "background.default",
-                              border: 1,
-                              borderColor: "divider"
-                            }}>
-                              <Typography
-                                component="pre"
-                                variant="body2"
-                                fontFamily="monospace"
+                            <Box sx={{ margin: 1 }}>
+                              <Typography variant="h6" gutterBottom component="div">
+                                Additional Details
+                              </Typography>
+                              <Paper
                                 sx={{
-                                  whiteSpace: "pre-wrap",
-                                  wordBreak: "break-word",
-                                  fontSize: "0.75rem",
-                                  color: "text.primary",
+                                  p: 2,
+                                  bgcolor: "background.default",
+                                  border: 1,
+                                  borderColor: "divider",
                                 }}
                               >
-                                {formatJsonData(log.data)}
-                              </Typography>
-                            </Paper>
-                            {log.error && (
-                              <>
                                 <Typography
-                                  variant="h6"
-                                  gutterBottom
-                                  component="div"
-                                  sx={{ mt: 2 }}
+                                  component="pre"
+                                  variant="body2"
+                                  fontFamily="monospace"
+                                  sx={{
+                                    whiteSpace: "pre-wrap",
+                                    wordBreak: "break-word",
+                                    fontSize: "0.75rem",
+                                    color: "text.primary",
+                                  }}
                                 >
-                                  Error Details
+                                  {formatJsonData(log.data)}
                                 </Typography>
-                                <Paper sx={{ 
-                                  p: 2, 
-                                  bgcolor: "error.light",
-                                  border: 1,
-                                  borderColor: "error.main"
-                                }}>
+                              </Paper>
+                              {log.error && (
+                                <>
                                   <Typography
-                                    variant="body2"
-                                    fontFamily="monospace"
+                                    variant="h6"
+                                    gutterBottom
+                                    component="div"
+                                    sx={{ mt: 2 }}
+                                  >
+                                    Error Details
+                                  </Typography>
+                                  <Paper
                                     sx={{
-                                      whiteSpace: "pre-wrap",
-                                      wordBreak: "break-word",
-                                      fontSize: "0.75rem",
-                                      color: "error.contrastText",
+                                      p: 2,
+                                      bgcolor: "error.light",
+                                      border: 1,
+                                      borderColor: "error.main",
                                     }}
                                   >
-                                    {log.error}
-                                  </Typography>
-                                </Paper>
-                              </>
-                            )}
-                          </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
+                                    <Typography
+                                      variant="body2"
+                                      fontFamily="monospace"
+                                      sx={{
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-word",
+                                        fontSize: "0.75rem",
+                                        color: "error.contrastText",
+                                      }}
+                                    >
+                                      {removeAboutBlank(log.error)}
+                                    </Typography>
+                                  </Paper>
+                                </>
+                              )}
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </>
                 );
@@ -346,98 +376,16 @@ export default function AuditLog() {
           </Typography>
         )}
 
-        {state.totalPages > 1 && (
+        {(state.page > 1 || state.hasNextPage) && (
           <Stack direction="row" justifyContent="center" spacing={2}>
-            <Pagination
-              count={state.totalPages}
-              page={state.page}
-              onChange={handlePageChange}
-              color="primary"
-            />
+            <Button variant="outlined" onClick={handlePrevPage} disabled={state.page <= 1}>
+              Previous
+            </Button>
+            <Button variant="outlined" onClick={handleNextPage} disabled={!state.hasNextPage}>
+              Next
+            </Button>
           </Stack>
         )}
-
-        <Dialog open={state.userDialogOpen} onClose={handleCloseUserDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              User Details
-              <IconButton onClick={handleCloseUserDialog} size="small">
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            {state.userLoading ? (
-              <Box display="flex" justifyContent="center" p={3}>
-                <CircularProgress />
-              </Box>
-            ) : state.selectedUser ? (
-              <Box>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      User ID
-                    </Typography>
-                    <Typography variant="body1">{state.selectedUser.id}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Username
-                    </Typography>
-                    <Typography variant="body1">{state.selectedUser.username}</Typography>
-                  </Grid>
-                  {state.selectedUser.realname && (
-                    <>
-                      <Grid item xs={12}>
-                        <Divider />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Real Name
-                        </Typography>
-                        <Typography variant="body1">{state.selectedUser.realname}</Typography>
-                      </Grid>
-                    </>
-                  )}
-                  {state.selectedUser.email && (
-                    <>
-                      <Grid item xs={12}>
-                        <Divider />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Email
-                        </Typography>
-                        <Typography variant="body1">{state.selectedUser.email}</Typography>
-                      </Grid>
-                    </>
-                  )}
-                  {state.selectedUser.phone && (
-                    <>
-                      <Grid item xs={12}>
-                        <Divider />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Phone
-                        </Typography>
-                        <Typography variant="body1">{state.selectedUser.phone}</Typography>
-                      </Grid>
-                    </>
-                  )}
-                </Grid>
-              </Box>
-            ) : (
-              <Alert severity="error">Failed to load user details</Alert>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseUserDialog}>Close</Button>
-          </DialogActions>
-        </Dialog>
       </CardContent>
     </Card>
   );

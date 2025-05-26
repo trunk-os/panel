@@ -87,7 +87,6 @@ export default function MetricCard({
                   <Tooltip title={secondaryLabel} arrow>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                       {secondaryLabel}: {formatValue(secondaryValue)}
-                      {unit && unit}
                     </Typography>
                   </Tooltip>
                 )}
