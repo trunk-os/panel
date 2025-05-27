@@ -7,7 +7,6 @@ import Layout from "@/components/Layout";
 import NotFound from "@/components/NotFound";
 import ZFSPage from "@/components/ZFSPage";
 import UserManagementPage from "@/components/UserManagementPage";
-import UserDetailsPage from "@/components/UserDetailsModal";
 import { LoginPage } from "@/components/LoginPage";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SetupGuard } from "@/components/SetupGuard";
@@ -15,6 +14,8 @@ import { AuthInitializer } from "@/components/AuthInitializer";
 import { Favicon } from "@/components/Favicon";
 import { useThemeStore } from "@/store/themeStore";
 import FirstTimeSetup from "@/components/FirstTimeSetup";
+import { ToastContainer } from "@/components/ToastContainer";
+import { ApiStatusNavigator } from "@/components/ApiStatusNavigator";
 
 export function App() {
   const { mode } = useThemeStore();
@@ -49,6 +50,8 @@ export function App() {
       <CssBaseline />
       <Favicon />
       <AuthInitializer />
+      <ApiStatusNavigator />
+      <ToastContainer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
@@ -73,7 +76,6 @@ export function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="disk" element={<ZFSPage />} />
           <Route path="users" element={<UserManagementPage />} />
-          <Route path="users/:userId" element={<UserDetailsPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

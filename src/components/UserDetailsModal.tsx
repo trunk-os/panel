@@ -7,8 +7,6 @@ import {
   Button,
   Divider,
   Grid,
-  Alert,
-  Snackbar,
   IconButton,
   Dialog,
   DialogActions,
@@ -21,7 +19,6 @@ import {
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { api } from "@/api/client";
-import { ApiError } from "@/api/errors";
 import { useAuthStore } from "@/store/authStore";
 import type { UserData, UserUpdateRequest } from "@/api/types";
 
@@ -384,28 +381,11 @@ export function UserDetailsModal({
 }: UserDetailsModalProps) {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showError, setShowError] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const { user: currentUser } = useAuthStore();
-
-  const handleApiError = useCallback((error: unknown) => {
-    console.error("API Error:", error);
-
-    let message = "An unknown error occurred";
-
-    if (error instanceof ApiError) {
-      message = error.message || `Error ${error.statusCode}`;
-    } else if (error instanceof Error) {
-      message = error.message;
-    }
-
-    setErrorMessage(message);
-    setShowError(true);
-  }, []);
 
   const fetchUserDetails = useCallback(async () => {
     if (!userId) return;
@@ -414,20 +394,16 @@ export function UserDetailsModal({
     try {
       const response = await api.users.get(userId);
       setUser(response.data);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsLoading(false);
     }
-  }, [userId, handleApiError]);
+  }, [userId]);
 
   useEffect(() => {
     if (open && userId) {
       fetchUserDetails();
     } else {
       setUser(null);
-      setErrorMessage(null);
-      setShowError(false);
     }
   }, [open, userId, fetchUserDetails]);
 
@@ -438,8 +414,6 @@ export function UserDetailsModal({
       fetchUserDetails();
       setEditDialogOpen(false);
       onUserUpdated?.();
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsEditingUser(false);
     }
@@ -454,8 +428,6 @@ export function UserDetailsModal({
       setDeleteDialogOpen(false);
       onUserDeleted?.();
       onClose();
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsDeletingUser(false);
     }
@@ -474,12 +446,17 @@ export function UserDetailsModal({
       <DialogContent>
         {isLoading ? (
           <Box
-            sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "200px",
+            }}
           >
             <CircularProgress />
           </Box>
         ) : !user ? (
-          <Alert severity="error">User not found</Alert>
+          <Typography color="error">User not found</Typography>
         ) : (
           <Box sx={{ mt: 1 }}>
             <Typography variant="h6" gutterBottom>
@@ -529,40 +506,16 @@ export function UserDetailsModal({
       <DialogActions>
         {user && (
           <>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => setEditDialogOpen(true)}
-            >
+            <Button variant="outlined" color="primary" onClick={() => setEditDialogOpen(true)}>
               Edit
             </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
+            <Button variant="outlined" color="error" onClick={() => setDeleteDialogOpen(true)}>
               Delete
             </Button>
           </>
         )}
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
-
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setShowError(false)}
-          severity="error"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
 
       <EditUserDialog
         open={editDialogOpen}
@@ -581,28 +534,5 @@ export function UserDetailsModal({
         isLoading={isDeletingUser}
       />
     </Dialog>
-  );
-}
-
-export default function UserDetailsPage() {
-  const navigate = useNavigate();
-
-  const goBack = () => {
-    navigate("/users");
-  };
-
-
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Box>
-        <Typography variant="h2">User Details</Typography>
-        <Typography variant="body1" color="text.secondary">
-          This page is now replaced by the UserDetailsModal. Please navigate to User Management to view user details.
-        </Typography>
-        <Button variant="outlined" onClick={goBack} sx={{ mt: 2 }}>
-          Back to User Management
-        </Button>
-      </Box>
-    </Box>
   );
 }

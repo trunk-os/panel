@@ -16,35 +16,14 @@ import type {
   AuditLog,
   Pagination,
 } from "./types";
-import { ApiError } from "./errors";
+import { ApiError, handleApiErrorResponse } from "./errors";
 import { useAuthStore } from "@/store/authStore";
+import { useConnectionStore } from "@/store/connectionStore";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5309";
 
 const handleErrorResponse = async (response: Response) => {
-  if (response.status === 401) {
-    useAuthStore.getState().clearToken();
-  }
-
-  try {
-    const errorData = await response.json();
-
-    if (errorData?.status === 401) {
-      useAuthStore.getState().clearToken();
-    }
-
-    throw new ApiError(
-      errorData?.message || response.statusText,
-      response.status,
-      errorData?.errorCode,
-      errorData?.details
-    );
-  } catch (parseError) {
-    if (parseError instanceof ApiError) {
-      throw parseError;
-    }
-    throw new ApiError(response.statusText, response.status);
-  }
+  await handleApiErrorResponse(response, useAuthStore.getState().clearToken);
 };
 
 export async function fetchApi<T = unknown>(
@@ -104,6 +83,14 @@ export async function fetchApi<T = unknown>(
     console.log("[fetchApi] got ", response.status, data);
     return { data, statusCode: response.status };
   } catch (error) {
+    // Check if this is a connection refused error
+    if (error instanceof Error && 
+        (error.message.includes("ERR_CONNECTION_REFUSED") || 
+         error.message.includes("NetworkError") ||
+         error.message.includes("Failed to fetch"))) {
+      useConnectionStore.getState().setConnectionError();
+    }
+    
     if (error instanceof ApiError) throw error;
     throw new ApiError(error instanceof Error ? error.message : "Network error", 0);
   }

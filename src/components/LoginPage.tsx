@@ -17,6 +17,7 @@ import { ApiError } from "@/api/errors";
 import { api } from "@/api/client";
 import type { Login, UserCreateRequest } from "@/api/types";
 import { CreateUserDialog } from "./dialogs/user/CreateUserDialog";
+import ApiStatusIndicator from "./ApiStatusIndicator";
 
 export function LoginPage() {
   const [formData, setFormData] = useState<Login>({
@@ -99,6 +100,12 @@ export function LoginPage() {
                 <Typography variant="body2" color="text.secondary">
                   Sign in to your account
                 </Typography>
+                <Box sx={{ mt: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    API Status:
+                  </Typography>
+                  <ApiStatusIndicator />
+                </Box>
               </Box>
 
               <form onSubmit={handleSubmit}>

@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import { api } from "@/api/client";
-import { ApiError } from "@/api/errors";
 import type { UserCreateRequest } from "@/api/types";
 
 interface CreateUserDialogProps {
@@ -29,13 +28,11 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
     setPasswordError("");
 
     if (formData.password !== confirmPassword) {
@@ -60,12 +57,6 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
       await api.users.create(userData);
       onUserCreated(userData);
       handleClose("UserCreated");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred");
-      }
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +70,8 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
       }));
     };
 
-  const handleClose = (reason: string, _event?: unknown) => {
+  const handleClose = (_event?: unknown, reason?: string) => {
+    console.log("[CreateUserDialog handleClose]", reason);
     if (reason && reason === "backdropClick") return;
     setFormData({
       username: "",
@@ -89,7 +81,6 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
       phone: "",
     });
     setConfirmPassword("");
-    setError("");
     setPasswordError("");
     onClose();
   };
@@ -166,12 +157,6 @@ export function CreateUserDialog({ open, onClose, onUserCreated }: CreateUserDia
               autoComplete="tel"
               fullWidth
             />
-
-            {error && (
-              <Typography variant="body2" color="error">
-                {error}
-              </Typography>
-            )}
 
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
               <Button

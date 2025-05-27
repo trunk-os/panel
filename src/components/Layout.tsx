@@ -1,5 +1,4 @@
 import { useState } from "react";
-import ApiStatusIndicator from "./ApiStatusIndicator";
 import { Outlet, Link as RouterLink } from "react-router-dom";
 import {
   AppBar,
@@ -21,7 +20,6 @@ import {
   Tooltip,
   Menu,
   MenuItem,
-  Chip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
@@ -104,9 +102,9 @@ export default function Layout() {
     setAnchorEl(null);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     handleUserMenuClose();
-    await logout();
+    logout();
   };
 
   const drawer = (
@@ -180,9 +178,6 @@ export default function Layout() {
                 </Typography>
               </Grid>
 
-              <Grid item>
-                <ApiStatusIndicator />
-              </Grid>
             </Grid>
 
             <Grid item xs={2} container justifyContent="flex-end" gap={1}>

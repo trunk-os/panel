@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { api } from "../api/client";
-import { useAuthStore } from "./authStore";
 import type { SystemStatus } from "@/api/types";
 
 const STATUS_POLLING_INTERVAL = 30000; // TODO: Move this to settings
@@ -31,7 +30,6 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
       console.log("[checkApiStatus] ", result);
 
       if (result === undefined) {
-        useAuthStore.getState().clearToken();
         set({
           status: "error",
           lastChecked: new Date(),

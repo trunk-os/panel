@@ -15,12 +15,9 @@ import {
   Paper,
   CircularProgress,
   IconButton,
-  Alert,
-  Snackbar,
   Tooltip,
 } from "@mui/material";
 import { api } from "@/api/client";
-import { ApiError } from "@/api/errors";
 import type { ZFSEntry, ZFSList, ZFSModifyDataset, ZFSModifyVolume } from "@/api/types";
 import CreateDatasetDialog from "@/components/dialogs/zfs/CreateDatasetDialog";
 import CreateVolumeDialog from "@/components/dialogs/zfs/CreateVolumeDialog";
@@ -47,9 +44,6 @@ export default function ZFSPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showError, setShowError] = useState(false);
-
   const [createDatasetOpen, setCreateDatasetOpen] = useState(false);
   const [createVolumeOpen, setCreateVolumeOpen] = useState(false);
   const [modifyDatasetOpen, setModifyDatasetOpen] = useState(false);
@@ -71,8 +65,7 @@ export default function ZFSPage() {
       } else {
         setAllEntries(response.data);
       }
-    } catch (error) {
-      handleApiError(error);
+    } catch (_error) {
       setAllEntries({ entries: [] });
     } finally {
       if (loading) {
@@ -98,21 +91,6 @@ export default function ZFSPage() {
   const [isModifyingVolume, setIsModifyingVolume] = useState(false);
   const [isDestroying, setIsDestroying] = useState(false);
 
-  const handleApiError = (error: unknown) => {
-    console.error("API Error:", error);
-
-    let message = "An unknown error occurred";
-
-    if (error instanceof ApiError) {
-      message = error.message || `Error ${error.statusCode}`;
-    } else if (error instanceof Error) {
-      message = error.message;
-    }
-
-    setErrorMessage(message);
-    setShowError(true);
-  };
-
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
   };
@@ -128,8 +106,6 @@ export default function ZFSPage() {
       await api.zfs.createDataset({ name, quota });
       refetch();
       setCreateDatasetOpen(false);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsCreatingDataset(false);
     }
@@ -141,8 +117,6 @@ export default function ZFSPage() {
       await api.zfs.createVolume({ name, size });
       refetch();
       setCreateVolumeOpen(false);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsCreatingVolume(false);
     }
@@ -155,8 +129,6 @@ export default function ZFSPage() {
       refetch();
       setModifyDatasetOpen(false);
       setSelectedEntry(null);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsModifyingDataset(false);
     }
@@ -169,8 +141,6 @@ export default function ZFSPage() {
       refetch();
       setModifyVolumeOpen(false);
       setSelectedEntry(null);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsModifyingVolume(false);
     }
@@ -184,8 +154,6 @@ export default function ZFSPage() {
         refetch();
         setDestroyDialogOpen(false);
         setSelectedEntry(null);
-      } catch (error) {
-        handleApiError(error);
       } finally {
         setIsDestroying(false);
       }
@@ -425,22 +393,6 @@ export default function ZFSPage() {
         name={selectedEntry?.full_name || ""}
         isLoading={isDestroying}
       />
-
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setShowError(false)}
-          severity="error"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

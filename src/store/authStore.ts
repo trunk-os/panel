@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import type { Login, UserData } from "@/api/types";
 import { createSecureStorage } from "./secureStorage";
 import type { api } from "@/api/client";
+import { useSetupStore } from "./setupStore";
+import { ApiError } from "@/api/errors";
 
 type ApiClient = typeof api;
 
@@ -32,7 +34,10 @@ export const useAuthStore = create<AuthState>()(
       getToken: () => get().token,
 
       clearToken: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, token: null, isAuthenticated: false, firstUser: null });
+        // Clear setup store when user is logged out
+        const { clearSetupStore } = useSetupStore.getState();
+        clearSetupStore();
       },
 
       login: async (credentials: Login, apiClient: ApiClient) => {
@@ -64,7 +69,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, token: null, isAuthenticated: false, firstUser: null });
+        // Clear setup store when user logs out
+        const { clearSetupStore } = useSetupStore.getState();
+        clearSetupStore();
       },
 
       initialize: async (apiClient: ApiClient) => {
@@ -84,12 +92,29 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           console.log("[authStore] Token validation failed:", error);
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
+          console.log("[authStore] Error type:", error?.constructor?.name);
+          console.log("[authStore] Error instanceof ApiError:", error instanceof ApiError);
+          if (error instanceof ApiError) {
+            console.log("[authStore] ApiError statusCode:", error.statusCode);
+          }
+          
+          // Only clear token if this is an authentication error (401)
+          // Don't log out on network errors or API unavailability
+          if (error instanceof ApiError && error.statusCode === 401) {
+            console.log("[authStore] Clearing token due to 401 error");
+            set({
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          } else {
+            console.log("[authStore] Keeping token, error was not 401");
+            // For network errors or API unavailability, just stop loading but keep token
+            set({
+              isLoading: false,
+            });
+          }
         }
       },
       setFirstUser: async (isFirst: boolean) => {

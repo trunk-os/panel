@@ -10,6 +10,7 @@ interface SetupState {
   markSetupComplete: () => void;
   updateSetupProgress: (step: number, completedSteps: string[]) => void;
   resetSetupProgress: () => void;
+  clearSetupStore: () => void;
 }
 
 export const useSetupStore = create<SetupState>()(
@@ -38,6 +39,16 @@ export const useSetupStore = create<SetupState>()(
 
       resetSetupProgress: () => {
         set({
+          setupProgress: {
+            currentStep: 0,
+            completedSteps: [],
+          },
+        });
+      },
+
+      clearSetupStore: () => {
+        set({
+          setupComplete: false,
           setupProgress: {
             currentStep: 0,
             completedSteps: [],

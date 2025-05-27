@@ -14,7 +14,6 @@ import {
   CircularProgress,
   Stack,
   Chip,
-  Alert,
   Collapse,
   IconButton,
   Button,
@@ -24,6 +23,7 @@ import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { UserDetailsModal } from "./UserDetailsModal";
+import { TextWithLinks } from "./TextWithLinks";
 import type { AuditLog as AuditLogType, Pagination as PaginationType, UserList } from "@/api/types";
 
 interface AuditLogState {
@@ -198,9 +198,9 @@ export default function AuditLog() {
 
   if (state.error) {
     return (
-      <Alert severity="error" sx={{ mb: 2 }}>
+      <Typography color="error" sx={{ mb: 2 }}>
         {state.error}
-      </Alert>
+      </Typography>
     );
   }
 
@@ -392,18 +392,17 @@ export default function AuditLog() {
                                       borderColor: "error.main",
                                     }}
                                   >
-                                    <Typography
+                                    <TextWithLinks
+                                      text={removeAboutBlank(log.error)}
                                       variant="body2"
                                       fontFamily="monospace"
                                       sx={{
                                         whiteSpace: "pre-wrap",
                                         wordBreak: "break-word",
                                         fontSize: "0.75rem",
-                                        color: "error.contrastText",
                                       }}
-                                    >
-                                      {removeAboutBlank(log.error)}
-                                    </Typography>
+                                      color="error.contrastText"
+                                    />
                                   </Paper>
                                 </>
                               )}

@@ -15,12 +15,9 @@ import {
   Paper,
   CircularProgress,
   IconButton,
-  Alert,
-  Snackbar,
   Tooltip,
 } from "@mui/material";
 import { api } from "@/api/client";
-import { ApiError } from "@/api/errors";
 import type { UserData, UserCreateRequest, UserList, UserUpdateRequest } from "@/api/types";
 import { CreateUserDialog } from "./dialogs/user/CreateUserDialog";
 import { EditUserDialog } from "./dialogs/user/EditUserDialog";
@@ -28,13 +25,10 @@ import { DeleteUserConfirmationDialog } from "./dialogs/user/DeleteUserConfirmat
 import { UserDetailsModal } from "./UserDetailsModal";
 import { useAuthStore } from "@/store/authStore";
 
-
 export default function UserManagementPage() {
   const [filter, setFilter] = useState("");
   const [users, setUsers] = useState<UserList>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showError, setShowError] = useState(false);
   const [createUserOpen, setCreateUserOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -53,8 +47,7 @@ export default function UserManagementPage() {
       setUsers(
         Array.isArray(response.data) ? response.data : response.data ? [response.data].flat() : []
       );
-    } catch (error) {
-      handleApiError(error);
+    } catch (_error) {
       setUsers([]);
     } finally {
       setIsLoading(false);
@@ -70,21 +63,6 @@ export default function UserManagementPage() {
     fetchUsers();
   }, []);
 
-  const handleApiError = (error: unknown) => {
-    console.error("API Error:", error);
-
-    let message = "An unknown error occurred";
-
-    if (error instanceof ApiError) {
-      message = error.message || `Error ${error.statusCode}`;
-    } else if (error instanceof Error) {
-      message = error.message;
-    }
-
-    setErrorMessage(message);
-    setShowError(true);
-  };
-
   const handleCreateUser = async (_user: UserCreateRequest) => {
     refetch();
     setCreateUserOpen(false);
@@ -97,8 +75,6 @@ export default function UserManagementPage() {
       refetch();
       setEditDialogOpen(false);
       setSelectedUser(null);
-    } catch (error) {
-      handleApiError(error);
     } finally {
       setIsEditingUser(false);
     }
@@ -117,8 +93,6 @@ export default function UserManagementPage() {
           setDeleteDialogOpen(false);
           setSelectedUser(null);
         }
-      } catch (error) {
-        handleApiError(error);
       } finally {
         setIsDeletingUser(false);
       }
@@ -284,22 +258,6 @@ export default function UserManagementPage() {
           fetchUsers();
         }}
       />
-
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setShowError(false)}
-          severity="error"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }
