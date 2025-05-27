@@ -83,11 +83,13 @@ export async function fetchApi<T = unknown>(
     console.log("[fetchApi] got ", response.status, data);
     return { data, statusCode: response.status };
   } catch (error) {
-    // Check if this is a connection refused error
+    // Check if this is a genuine connection refused error (server completely unreachable)
     if (error instanceof Error && 
         (error.message.includes("ERR_CONNECTION_REFUSED") || 
-         error.message.includes("NetworkError") ||
-         error.message.includes("Failed to fetch"))) {
+         error.message.includes("ECONNREFUSED") ||
+         error.message.includes("ERR_NETWORK") ||
+         (error.message.includes("Failed to fetch") && !error.message.includes("404") && !error.message.includes("401")))) {
+      console.log("[fetchApi] Connection error detected:", error.message);
       useConnectionStore.getState().setConnectionError();
     }
     
