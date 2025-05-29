@@ -23,6 +23,7 @@ import { CreateUserDialog } from "./dialogs/user/CreateUserDialog";
 import { EditUserDialog } from "./dialogs/user/EditUserDialog";
 import { DeleteUserConfirmationDialog } from "./dialogs/user/DeleteUserConfirmationDialog";
 import { UserDetailsModal } from "./UserDetailsModal";
+import PaginationControls from "./PaginationControls";
 import { useAuthStore } from "@/store/authStore";
 
 export default function UserManagementPage() {
@@ -37,34 +38,46 @@ export default function UserManagementPage() {
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState<number | null>(null);
-  const { user: currentUser, logout } = useAuthStore();
+  const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(50);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const { currentUser, logout } = useAuthStore();
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (pageNum: number = page, pageSize: number = perPage) => {
     setIsLoading(true);
     try {
-      const response = await api.users.list();
-      console.log("[fetchUsers] ", response);
-      setUsers(
-        Array.isArray(response.data) ? response.data : response.data ? [response.data].flat() : []
-      );
+      const response = await api.users.list({ page: pageNum, per_page: pageSize });
+      const userData = Array.isArray(response.data)
+        ? response.data
+        : response.data
+          ? [response.data].flat()
+          : [];
+      setUsers(userData);
+      setHasNextPage(userData.length === pageSize);
     } catch (_error) {
       setUsers([]);
+      setHasNextPage(false);
     } finally {
       setIsLoading(false);
     }
   };
 
   const refetch = () => {
-    fetchUsers();
+    fetchUsers(page, perPage);
+  };
+
+  const refetchFromFirstPage = () => {
+    setPage(0);
+    fetchUsers(0, perPage);
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: fetchUsers is defined in the component and doesn't change
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(page, perPage);
+  }, [page, perPage]);
 
   const handleCreateUser = async (_user: UserCreateRequest) => {
-    refetch();
+    refetchFromFirstPage();
     setCreateUserOpen(false);
   };
 
@@ -85,14 +98,18 @@ export default function UserManagementPage() {
       setIsDeletingUser(true);
       try {
         console.log("[handleDeleteUser] ", selectedUser, currentUser);
-        await api.users.destroy(Number(selectedUser.id));
-        if (selectedUser.id === currentUser?.id) {
-          logout();
+        if (selectedUser.deleted_at) {
+          await api.users.restore(Number(selectedUser.id));
         } else {
-          refetch();
-          setDeleteDialogOpen(false);
-          setSelectedUser(null);
+          await api.users.destroy(Number(selectedUser.id));
+          if (selectedUser.id === currentUser()?.id) {
+            logout();
+            return;
+          }
         }
+        refetchFromFirstPage();
+        setDeleteDialogOpen(false);
+        setSelectedUser(null);
       } finally {
         setIsDeletingUser(false);
       }
@@ -114,7 +131,14 @@ export default function UserManagementPage() {
     setSelectedUserForDetails(userId);
     setUserDetailsOpen(true);
   };
-  console.log("[UserManagmentPage] ", users);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handlePerPageChange = (newPerPage: number) => {
+    setPerPage(newPerPage);
+  };
   const filteredUsers = users.filter(
     (user) =>
       user.username?.toLowerCase().includes(filter.toLowerCase()) ||
@@ -160,13 +184,14 @@ export default function UserManagementPage() {
                   <TableCell>Real Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Phone</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center">
+                    <TableCell colSpan={6} align="center">
                       <CircularProgress />
                     </TableCell>
                   </TableRow>
@@ -177,6 +202,17 @@ export default function UserManagementPage() {
                       <TableCell>{user.realname || "-"}</TableCell>
                       <TableCell>{user.email || "-"}</TableCell>
                       <TableCell>{user.phone || "-"}</TableCell>
+                      <TableCell>
+                        {user.deleted_at ? (
+                          <Typography variant="body2" color="warning.main">
+                            Suspended
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="success.main">
+                            Active
+                          </Typography>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", gap: 1 }}>
                           <Tooltip title="View Details">
@@ -197,29 +233,49 @@ export default function UserManagementPage() {
                               <span className="material-symbols-outlined">edit</span>
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Delete User">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openDeleteDialog(user)}
-                            >
-                              <span className="material-symbols-outlined">delete</span>
-                            </IconButton>
-                          </Tooltip>
+                          {user.deleted_at ? (
+                            <Tooltip title="Restore User">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => openDeleteDialog(user)}
+                              >
+                                <span className="material-symbols-outlined">restore</span>
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip title="Suspend User">
+                              <IconButton
+                                size="small"
+                                color="warning"
+                                onClick={() => openDeleteDialog(user)}
+                              >
+                                <span className="material-symbols-outlined">block</span>
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Box>
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      {filter ? "No matching users found" : "No users found"}
-                    </TableCell>
-                  </TableRow>
-                )}
+                ) : null}
               </TableBody>
             </Table>
           </TableContainer>
+
+          {filteredUsers.length === 0 && (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+              {filter ? "No matching users found" : "No users found"}
+            </Typography>
+          )}
+
+          <PaginationControls
+            page={page}
+            perPage={perPage}
+            hasNextPage={hasNextPage}
+            onPageChange={handlePageChange}
+            onPerPageChange={handlePerPageChange}
+          />
         </CardContent>
       </Card>
 
@@ -243,7 +299,6 @@ export default function UserManagementPage() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteUser}
         user={selectedUser}
-        currentUser={currentUser}
         isLoading={isDeletingUser}
       />
 
@@ -252,10 +307,10 @@ export default function UserManagementPage() {
         onClose={() => setUserDetailsOpen(false)}
         userId={selectedUserForDetails}
         onUserUpdated={() => {
-          fetchUsers();
+          refetch();
         }}
         onUserDeleted={() => {
-          fetchUsers();
+          refetchFromFirstPage();
         }}
       />
     </Box>

@@ -9,7 +9,6 @@ import ZFSPage from "@/components/ZFSPage";
 import UserManagementPage from "@/components/UserManagementPage";
 import { LoginPage } from "@/components/LoginPage";
 import { AuthGuard } from "@/components/AuthGuard";
-import { SetupGuard } from "@/components/SetupGuard";
 import { AuthInitializer } from "@/components/AuthInitializer";
 import { Favicon } from "@/components/Favicon";
 import { useThemeStore } from "@/store/themeStore";
@@ -58,9 +57,7 @@ export function App() {
           path="/setup"
           element={
             <AuthGuard>
-              <SetupGuard>
-                <FirstTimeSetup />
-              </SetupGuard>
+              <FirstTimeSetup />
             </AuthGuard>
           }
         />

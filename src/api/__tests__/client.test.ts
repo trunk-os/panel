@@ -335,7 +335,30 @@ describe("API Client", () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const [url, options] = mockFetch.mock.calls[0];
       expect(url.endsWith("/users")).toBe(true);
-      expect(options.method).toBe("GET");
+      expect(options.method).toBe("POST");
+      expect(result.data).toEqual(mockUserData);
+      expect(result.statusCode).toBe(200);
+    });
+
+    test("api.users.list should accept pagination parameters", async () => {
+      const mockFetch = mock(() => {
+        const responseBody = cbor.encode(mockUserData);
+        return Promise.resolve(
+          new Response(responseBody, {
+            status: 200,
+            headers: { "Content-Type": "application/cbor" },
+          })
+        );
+      });
+      globalThis.fetch = mockFetch;
+
+      const pagination = { page: 2, per_page: 10 };
+      const result = await api.users.list(pagination);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url.endsWith("/users")).toBe(true);
+      expect(options.method).toBe("POST");
       expect(result.data).toEqual(mockUserData);
       expect(result.statusCode).toBe(200);
     });

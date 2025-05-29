@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuthStore } from "@/store/authStore";
+import { useSetupStore } from "@/store/setupStore";
 import { ApiError } from "@/api/errors";
 import { api } from "@/api/client";
 import type { Login, UserCreateRequest } from "@/api/types";
@@ -28,22 +29,27 @@ export function LoginPage() {
   const [error, setError] = useState<string>("");
   const [showCreateUser, setShowCreateUser] = useState(false);
 
-  const { login, isAuthenticated, setFirstUser, firstUser } = useAuthStore();
+  const { login, isAuthenticated } = useAuthStore();
+  const { needsSetup } = useSetupStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from || "/dashboard";
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We don't want to trigger on firstUser, we want to trigger on isAuthenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      if (firstUser) {
-        navigate("/setup", { replace: true });
-      } else {
-        navigate(from, { replace: true });
+    const checkNeedsSetup = async () => {
+      if (isAuthenticated) {
+        const requires = await needsSetup(api);
+        console.log("[checkNeedsSetup] Requires: ", requires);
+        if (requires) {
+          navigate("/setup", { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
-    }
-  }, [isAuthenticated]);
+    };
+    checkNeedsSetup();
+  }, [isAuthenticated, navigate, from, needsSetup]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +81,6 @@ export function LoginPage() {
       username: user.username,
       password: user.password,
     });
-    setFirstUser(true);
     setShowCreateUser(false);
   };
 
@@ -100,7 +105,15 @@ export function LoginPage() {
                 <Typography variant="body2" color="text.secondary">
                   Sign in to your account
                 </Typography>
-                <Box sx={{ mt: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                  }}
+                >
                   <Typography variant="body2" color="text.secondary">
                     API Status:
                   </Typography>

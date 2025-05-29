@@ -12,11 +12,9 @@ import {
   TableRow,
   Paper,
   CircularProgress,
-  Stack,
   Chip,
   Collapse,
   IconButton,
-  Button,
   Link,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
@@ -24,6 +22,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { UserDetailsModal } from "./UserDetailsModal";
 import { TextWithLinks } from "./TextWithLinks";
+import PaginationControls from "./PaginationControls";
 import type { AuditLog as AuditLogType, Pagination as PaginationType, UserList } from "@/api/types";
 
 interface AuditLogState {
@@ -45,7 +44,7 @@ export default function AuditLog() {
     logs: [],
     loading: true,
     error: null,
-    page: 1,
+    page: 0,
     perPage: 50,
     hasNextPage: false,
     expandedRows: new Set(),
@@ -59,7 +58,7 @@ export default function AuditLog() {
     setState((prev) => ({ ...prev, usersLoading: true }));
 
     try {
-      const response = await api.users.list();
+      const response = await api.users.list({ page: 0 });
       setState((prev) => ({
         ...prev,
         users: response.data,
@@ -80,7 +79,7 @@ export default function AuditLog() {
     try {
       const pagination: PaginationType = {
         page,
-        perPage,
+        per_page: perPage,
       };
 
       const response = await api.status.log(pagination);
@@ -112,16 +111,12 @@ export default function AuditLog() {
     fetchUsers();
   }, []);
 
-  const handlePrevPage = () => {
-    if (state.page > 1) {
-      setState((prev) => ({ ...prev, page: prev.page - 1 }));
-    }
+  const handlePageChange = (newPage: number) => {
+    setState((prev) => ({ ...prev, page: newPage }));
   };
 
-  const handleNextPage = () => {
-    if (state.hasNextPage) {
-      setState((prev) => ({ ...prev, page: prev.page + 1 }));
-    }
+  const handlePerPageChange = (newPerPage: number) => {
+    setState((prev) => ({ ...prev, perPage: newPerPage }));
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -325,7 +320,9 @@ export default function AuditLog() {
                                             <TableBody>
                                               {entries.map(([key, value]) => (
                                                 <TableRow key={key}>
-                                                  <TableCell sx={{ fontWeight: "bold", width: "30%" }}>
+                                                  <TableCell
+                                                    sx={{ fontWeight: "bold", width: "30%" }}
+                                                  >
                                                     {key}
                                                   </TableCell>
                                                   <TableCell
@@ -424,16 +421,13 @@ export default function AuditLog() {
           </Typography>
         )}
 
-        {(state.page > 1 || state.hasNextPage) && (
-          <Stack direction="row" justifyContent="center" spacing={2}>
-            <Button variant="outlined" onClick={handlePrevPage} disabled={state.page <= 1}>
-              Previous
-            </Button>
-            <Button variant="outlined" onClick={handleNextPage} disabled={!state.hasNextPage}>
-              Next
-            </Button>
-          </Stack>
-        )}
+        <PaginationControls
+          page={state.page}
+          perPage={state.perPage}
+          hasNextPage={state.hasNextPage}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+        />
 
         <UserDetailsModal
           open={state.userDetailsOpen}

@@ -1,7 +1,7 @@
 import { decode, encode } from "cbor2";
 import type {
   ApiResponse,
-  ZFSList,
+  ZFSEntry,
   ZFSDataset,
   ZFSVolume,
   ZFSModifyDataset,
@@ -118,7 +118,7 @@ export const api = {
   },
 
   zfs: {
-    list: (filter = "", options?: RequestInit) => api.post<ZFSList>("/zfs/list", filter, options),
+    list: (filter = "", options?: RequestInit) => api.post<ZFSEntry[]>("/zfs/list", filter, options),
     createDataset: (dataset: ZFSDataset, options?: RequestInit) =>
       api.post<void>("/zfs/create_dataset", dataset, options),
     createVolume: (volume: ZFSVolume, options?: RequestInit) =>
@@ -130,13 +130,15 @@ export const api = {
     destroy: (name: string, options?: RequestInit) => api.post<void>("/zfs/destroy", name, options),
   },
   users: {
-    list: (options?: RequestInit) => api.get<UserList>("/users", options),
+    list: (pagination?: Pagination, options?: RequestInit) => 
+      api.post<UserList>("/users", pagination || {}, options),
     create: (user: UserCreateRequest, options?: RequestInit) =>
       api.put<UserData>("/users", { id: 0, ...user }, options),
     update: (user: UserUpdateRequest, options?: RequestInit) =>
       api.post<UserUpdateRequest>(`/user/${user.id}`, user, options),
     get: (userId: number, options?: RequestInit) => api.get<UserData>(`/user/${userId}`, options),
     destroy: (userId: number, options?: RequestInit) => api.delete(`/user/${userId}`, options),
+    restore: (userId: number, options?: RequestInit) => api.post<UserData>(`/user/${userId}/restore`, {}, options),
   },
   session: {
     login: (login: Login, options?: RequestInit) =>

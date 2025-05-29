@@ -13,13 +13,12 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  firstUser?: boolean | null;
   login: (credentials: Login, apiClient: ApiClient) => Promise<void>;
   logout: () => void;
   getToken: () => string | null;
   clearToken: () => void;
   initialize: (apiClient: ApiClient) => Promise<void>;
-  setFirstUser: (isFirst: boolean) => void;
+  currentUser: () => UserData | null;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -29,13 +28,11 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: true,
-      firstUser: null,
 
       getToken: () => get().token,
 
       clearToken: () => {
-        set({ user: null, token: null, isAuthenticated: false, firstUser: null });
-        // Clear setup store when user is logged out
+        set({ user: null, token: null, isAuthenticated: false });
         const { clearSetupStore } = useSetupStore.getState();
         clearSetupStore();
       },
@@ -67,10 +64,11 @@ export const useAuthStore = create<AuthState>()(
           throw error;
         }
       },
-
+      currentUser() {
+        return get().user;
+      },
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false, firstUser: null });
-        // Clear setup store when user logs out
+        set({ user: null, token: null, isAuthenticated: false });
         const { clearSetupStore } = useSetupStore.getState();
         clearSetupStore();
       },
@@ -97,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
           if (error instanceof ApiError) {
             console.log("[authStore] ApiError statusCode:", error.statusCode);
           }
-          
+
           // Only clear token if this is an authentication error (401)
           // Don't log out on network errors or API unavailability
           if (error instanceof ApiError && error.statusCode === 401) {
@@ -117,16 +115,12 @@ export const useAuthStore = create<AuthState>()(
           }
         }
       },
-      setFirstUser: async (isFirst: boolean) => {
-        set({ firstUser: isFirst });
-      },
     }),
     {
       name: "trunk-admin-auth",
       storage: createSecureStorage(),
       partialize: (state) => ({
         token: state.token,
-        firstUser: state.firstUser,
       }),
       onRehydrateStorage: () => () => {
         // Storage rehydrated

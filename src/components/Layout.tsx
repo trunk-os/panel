@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet, Link as RouterLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -25,7 +25,6 @@ import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
 import { useAuthStore } from "@/store/authStore";
 import trunkLogo from "@/assets/logos/new_trunk_header.png";
-import { useNavigate } from "react-router-dom";
 
 const drawerWidth = 240;
 

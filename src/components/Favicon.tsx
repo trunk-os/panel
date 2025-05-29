@@ -7,14 +7,14 @@ export function Favicon() {
     // Update favicon links
     const links = document.querySelectorAll("link[rel*='icon']");
 
-    links.forEach((link) => {
+    for (const link of links) {
       const rel = link.getAttribute("rel");
       if (rel?.includes("png") || link.getAttribute("type")?.includes("png")) {
         link.setAttribute("href", faviconPng);
       } else {
         link.setAttribute("href", favicon);
       }
-    });
+    }
 
     // If no favicon links exist, create them
     if (links.length === 0) {

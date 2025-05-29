@@ -13,25 +13,24 @@ import {
   Checkbox,
 } from "@mui/material";
 import type { UserData } from "@/api/types";
+import { useAuthStore } from "@/store/authStore";
 
 export function DeleteUserConfirmationDialog({
   open,
   onClose,
   onConfirm,
   user,
-  currentUser,
   isLoading,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   user: UserData | null;
-  currentUser: UserData | null;
   isLoading: boolean;
 }) {
   const [warningUnderstood, setWarningUnderstood] = useState<boolean>(false);
-
-  const sameUser = currentUser?.username === user?.username;
+  const { currentUser } = useAuthStore();
+  const sameUser = currentUser()?.id === user?.id;
 
   const handleCheckboxChange = (_event: ChangeEvent<HTMLInputElement>, checked: boolean) => {
     setWarningUnderstood(checked);
@@ -39,18 +38,19 @@ export function DeleteUserConfirmationDialog({
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirm Deletion</DialogTitle>
+      <DialogTitle>{user?.deleted_at ? "Confirm Restoration" : "Confirm Suspension"}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure you want to delete the user <strong>{user?.username}</strong>? This action
-          cannot be undone.
+          {user?.deleted_at
+            ? `Are you sure you want to restore the user ${user?.username}? This will give them access to the system again.`
+            : `Are you sure you want to suspend the user ${user?.username}? They will lose access to the system but can be restored later.`}
         </DialogContentText>
         {sameUser && (
           <Paper square sx={{ padding: 2, margin: 2 }}>
             <Box sx={{ display: "grid", justifyItems: "left" }}>
               <Typography variant="subtitle1" sx={{ color: "orange" }}>
                 WARNING: This is the Current User. You will immediately lose access to the
-                application if you delete yourself.
+                application if you suspend yourself.
               </Typography>
 
               <Box>
@@ -73,10 +73,10 @@ export function DeleteUserConfirmationDialog({
         <Button
           onClick={onConfirm}
           variant="contained"
-          color="error"
+          color={user?.deleted_at ? "success" : "warning"}
           disabled={isLoading || (sameUser && !warningUnderstood)}
         >
-          {isLoading ? <CircularProgress size={24} /> : "Delete"}
+          {isLoading ? <CircularProgress size={24} /> : user?.deleted_at ? "Restore" : "Suspend"}
         </Button>
       </DialogActions>
     </Dialog>

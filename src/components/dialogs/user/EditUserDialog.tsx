@@ -155,6 +155,7 @@ export function EditUserDialog({
       realname: realname || undefined,
       email: email || undefined,
       phone: phone || undefined,
+      deleted_at: user.deleted_at,
     };
 
     if (password) {

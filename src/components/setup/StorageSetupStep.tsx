@@ -25,7 +25,7 @@ import {
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import type { ZFSEntry, ZFSList } from "@/api/types";
+import type { ZFSEntry } from "@/api/types";
 
 interface StorageSetupStepProps {
   onNext: () => void;
@@ -153,11 +153,97 @@ function CreateInitialDatasetDialog({
   );
 }
 
+function CreateInitialVolumeDialog({
+  open,
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (name: string, size: number) => void;
+  isLoading: boolean;
+}) {
+  const [name, setName] = useState("storage");
+  const [size, setSize] = useState("50");
+  const [sizeUnit, setSizeUnit] = useState("G");
+
+  const handleSubmit = () => {
+    const sizeInBytes = calculateSize(`${size}${sizeUnit}B`);
+    onSubmit(name, sizeInBytes);
+  };
+
+  const handleClose = () => {
+    setName("storage");
+    setSize("50");
+    setSizeUnit("G");
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>Create Initial Volume</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Create an initial volume for block storage. Volumes are fixed-size and provide raw block storage.
+        </DialogContentText>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="volume-name"
+          label="Volume Name"
+          type="text"
+          fullWidth
+          variant="outlined"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+          <TextField
+            margin="dense"
+            id="volume-size"
+            label="Size"
+            type="number"
+            variant="outlined"
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
+            sx={{ flex: 2 }}
+            helperText="Recommended: 50GB to start"
+          />
+          <FormControl sx={{ flex: 1, mt: 1 }}>
+            <InputLabel id="size-unit-label">Unit</InputLabel>
+            <Select
+              labelId="size-unit-label"
+              id="size-unit"
+              value={sizeUnit}
+              label="Unit"
+              onChange={(e) => setSizeUnit(e.target.value)}
+            >
+              <MenuItem value="G">GB</MenuItem>
+              <MenuItem value="T">TB</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={isLoading || !name}>
+          Create Volume
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [zfsList, setZfsList] = useState<ZFSList | null>(null);
-  const [hasCreatedDataset, setHasCreatedDataset] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [zfsList, setZfsList] = useState<ZFSEntry[] | null>(null);
+  const [hasCreatedStorage, setHasCreatedStorage] = useState(false);
+  const [showCreateDatasetDialog, setShowCreateDatasetDialog] = useState(false);
+  const [showCreateVolumeDialog, setShowCreateVolumeDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -165,11 +251,7 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
     setIsLoading(true);
     try {
       const response = await api.zfs.list("");
-      if (Array.isArray(response.data)) {
-        setZfsList({ entries: response.data });
-      } else {
-        setZfsList(response.data);
-      }
+      setZfsList(response.data);
       setError(null);
     } catch (error) {
       console.error("Failed to fetch storage entries:", error);
@@ -178,7 +260,7 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
       } else {
         setError("Failed to load storage information");
       }
-      setZfsList({ entries: [] });
+      setZfsList([]);
     } finally {
       setIsLoading(false);
     }
@@ -193,8 +275,8 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
     setIsCreating(true);
     try {
       await api.zfs.createDataset({ name, quota });
-      setHasCreatedDataset(true);
-      setShowCreateDialog(false);
+      setHasCreatedStorage(true);
+      setShowCreateDatasetDialog(false);
       await fetchZFSEntries();
     } catch (error) {
       console.error("Failed to create dataset:", error);
@@ -208,8 +290,27 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
     }
   };
 
-  const hasDatasets = zfsList?.entries && zfsList.entries.length > 0;
-  const canProceed = hasDatasets || hasCreatedDataset;
+  const hasStorage = zfsList && zfsList.length > 0;
+  const canProceed = hasStorage || hasCreatedStorage;
+
+  const handleCreateVolume = async (name: string, size: number) => {
+    setIsCreating(true);
+    try {
+      await api.zfs.createVolume({ name, size });
+      setHasCreatedStorage(true);
+      setShowCreateVolumeDialog(false);
+      await fetchZFSEntries();
+    } catch (error) {
+      console.error("Failed to create volume:", error);
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to create volume");
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <Box>
@@ -217,7 +318,7 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
         Storage Configuration
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Review your storage and create initial datasets for organizing your data.
+        Review your storage and create initial datasets or volumes for organizing your data.
       </Typography>
 
       {error && (
@@ -238,9 +339,9 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
               <Typography variant="h6" gutterBottom>
                 Datasets and Volumes
               </Typography>
-              {hasDatasets ? (
+              {hasStorage ? (
                 <List>
-                  {zfsList.entries.map((entry) => (
+                  {zfsList.map((entry) => (
                     <ListItem key={entry.full_name}>
                       <ListItemIcon>
                         <span className="material-symbols-outlined">
@@ -262,36 +363,44 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
                 </List>
               ) : (
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  No datasets found. Create an initial dataset to organize your storage.
+                  No datasets or volumes found. Create initial storage to organize your data.
                 </Alert>
               )}
             </CardContent>
           </Card>
 
-          {!hasDatasets && !hasCreatedDataset && (
+          {!hasStorage && !hasCreatedStorage && (
             <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Create Initial Dataset
+                  Create Initial Storage
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Datasets help organize your storage with quotas and permissions. We recommend
-                  creating a "data" dataset to get started.
+                  Choose between datasets (file storage with quotas) or volumes (fixed-size block storage).
                 </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => setShowCreateDialog(true)}
-                  startIcon={<span className="material-symbols-outlined">add</span>}
-                >
-                  Create Dataset
-                </Button>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => setShowCreateDatasetDialog(true)}
+                    startIcon={<span className="material-symbols-outlined">folder</span>}
+                  >
+                    Create Dataset
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowCreateVolumeDialog(true)}
+                    startIcon={<span className="material-symbols-outlined">storage</span>}
+                  >
+                    Create Volume
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           )}
 
-          {hasCreatedDataset && (
+          {hasCreatedStorage && (
             <Alert severity="success" sx={{ mb: 3 }}>
-              Dataset created successfully! Your storage is ready for use.
+              Storage created successfully! Your storage is ready for use.
             </Alert>
           )}
 
@@ -305,9 +414,16 @@ export function StorageSetupStep({ onNext, onBack }: StorageSetupStepProps) {
       )}
 
       <CreateInitialDatasetDialog
-        open={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
+        open={showCreateDatasetDialog}
+        onClose={() => setShowCreateDatasetDialog(false)}
         onSubmit={handleCreateDataset}
+        isLoading={isCreating}
+      />
+      
+      <CreateInitialVolumeDialog
+        open={showCreateVolumeDialog}
+        onClose={() => setShowCreateVolumeDialog(false)}
+        onSubmit={handleCreateVolume}
         isLoading={isCreating}
       />
     </Box>

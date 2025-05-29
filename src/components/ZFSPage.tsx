@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { api } from "@/api/client";
-import type { ZFSEntry, ZFSList, ZFSModifyDataset, ZFSModifyVolume } from "@/api/types";
+import type { ZFSEntry, ZFSModifyDataset, ZFSModifyVolume } from "@/api/types";
 import CreateDatasetDialog from "@/components/dialogs/zfs/CreateDatasetDialog";
 import CreateVolumeDialog from "@/components/dialogs/zfs/CreateVolumeDialog";
 import ModifyDatasetDialog from "@/components/dialogs/zfs/ModifyDatasetDialog";
@@ -40,7 +40,7 @@ function formatBytes(bytes: number, decimals = 2) {
 
 export default function ZFSPage() {
   const [filter, setFilter] = useState("");
-  const [allEntries, setAllEntries] = useState<ZFSList | null>(null);
+  const [allEntries, setAllEntries] = useState<ZFSEntry[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -60,13 +60,9 @@ export default function ZFSPage() {
     }
     try {
       const response = await api.zfs.list("");
-      if (Array.isArray(response.data)) {
-        setAllEntries({ entries: response.data });
-      } else {
-        setAllEntries(response.data);
-      }
+      setAllEntries(response.data);
     } catch (_error) {
-      setAllEntries({ entries: [] });
+      setAllEntries([]);
     } finally {
       if (loading) {
         setIsLoading(false);
@@ -96,7 +92,7 @@ export default function ZFSPage() {
   };
 
   const filteredEntries =
-    allEntries?.entries.filter((entry) =>
+    allEntries?.filter((entry) =>
       entry.name.toLowerCase().includes(filter.toLowerCase())
     ) || [];
 

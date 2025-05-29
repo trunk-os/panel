@@ -1,5 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { api } from "@/api/client";
+
+type ApiClient = typeof api;
 
 interface SetupState {
   setupComplete: boolean;
@@ -11,6 +14,7 @@ interface SetupState {
   updateSetupProgress: (step: number, completedSteps: string[]) => void;
   resetSetupProgress: () => void;
   clearSetupStore: () => void;
+  needsSetup: (apiClient: ApiClient) => Promise<boolean>;
 }
 
 export const useSetupStore = create<SetupState>()(
@@ -54,6 +58,27 @@ export const useSetupStore = create<SetupState>()(
             completedSteps: [],
           },
         });
+      },
+
+      needsSetup: async (apiClient: ApiClient) => {
+        try {
+          const usersResponse = await apiClient.users.list({ page: 0 });
+          console.log("[needsSetup]", usersResponse);
+          const userCount = usersResponse.data.length;
+          console.log("[needsSetup]", usersResponse.data.length);
+
+          if (userCount !== 1) {
+            return false;
+          }
+
+          const zfsResponse = await apiClient.zfs.list("");
+          console.log("[needsSetup] zfs", zfsResponse);
+          const zfsCount = zfsResponse.data.length;
+
+          return zfsCount === 0;
+        } catch {
+          return false;
+        }
       },
     }),
     {

@@ -28,7 +28,7 @@ export default function ObjectStorageMetricCard({
       setIsLoading(true);
       try {
         const response = await api.zfs.list("");
-        const datasets = Array.isArray(response.data) ? response.data : response.data.entries || [];
+        const datasets = response.data;
 
         const datasetEntries = datasets.filter((entry: ZFSEntry) => entry.kind === "Dataset");
 

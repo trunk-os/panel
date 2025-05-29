@@ -42,9 +42,6 @@ export interface ZFSListFilter {
   filter: string;
 }
 
-export interface ZFSList {
-  entries: ZFSEntry[];
-}
 
 export interface ZFSName {
   name: string;
@@ -76,6 +73,7 @@ export interface UserData {
   realname?: string | null;
   email?: string | null;
   phone?: string | null;
+  deleted_at?: string | null;
 }
 
 export interface UserCreateRequest extends Omit<UserData, "id"> {
@@ -110,6 +108,6 @@ export interface AuditLog {
 
 export interface Pagination {
   since?: string;
-  perPage?: number;
+  per_page?: number;
   page?: number;
 }
