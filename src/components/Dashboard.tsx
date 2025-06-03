@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import SystemStatusCard from "./metrics/SystemStatusCard";
 import DiskMetricCard from "./metrics/DiskMetricCard";
 import ComputeMetricCard from "./metrics/ComputeMetricCard";
-import NetworkMetricCard from "./metrics/NetworkMetricCard";
+import ServiceHealthCard from "./metrics/ServiceHealthCard";
 import VMMetricCard from "./metrics/VMMetricCard";
 import ObjectStorageMetricCard from "./metrics/ObjectStorageMetricCard";
 import SkeletonCard from "./SkeletonCard";
@@ -180,7 +180,7 @@ export default function Dashboard() {
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            <DiskMetricCard collapsed={true} />
+            <ServiceHealthCard collapsed={true} />
           </Box>
 
           <Box sx={{ flex: 1 }}>
@@ -188,7 +188,7 @@ export default function Dashboard() {
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            <NetworkMetricCard collapsed={true} />
+            <DiskMetricCard collapsed={true} />
           </Box>
         </Box>
       )}
@@ -216,7 +216,7 @@ export default function Dashboard() {
 
         <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <DiskMetricCard />
+            <ServiceHealthCard />
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
@@ -224,7 +224,7 @@ export default function Dashboard() {
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <NetworkMetricCard />
+            <DiskMetricCard />
           </Box>
         </Box>
       </Box>

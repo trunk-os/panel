@@ -15,6 +15,7 @@ import type {
   SystemStatusResult,
   AuditLog,
   Pagination,
+  PingResult,
 } from "./types";
 import { ApiError, handleApiErrorResponse } from "./errors";
 import { useAuthStore } from "@/store/authStore";
@@ -84,15 +85,19 @@ export async function fetchApi<T = unknown>(
     return { data, statusCode: response.status };
   } catch (error) {
     // Check if this is a genuine connection refused error (server completely unreachable)
-    if (error instanceof Error && 
-        (error.message.includes("ERR_CONNECTION_REFUSED") || 
-         error.message.includes("ECONNREFUSED") ||
-         error.message.includes("ERR_NETWORK") ||
-         (error.message.includes("Failed to fetch") && !error.message.includes("404") && !error.message.includes("401")))) {
+    if (
+      error instanceof Error &&
+      (error.message.includes("ERR_CONNECTION_REFUSED") ||
+        error.message.includes("ECONNREFUSED") ||
+        error.message.includes("ERR_NETWORK") ||
+        (error.message.includes("Failed to fetch") &&
+          !error.message.includes("404") &&
+          !error.message.includes("401")))
+    ) {
       console.log("[fetchApi] Connection error detected:", error.message);
       useConnectionStore.getState().setConnectionError();
     }
-    
+
     if (error instanceof ApiError) throw error;
     throw new ApiError(error instanceof Error ? error.message : "Network error", 0);
   }
@@ -112,13 +117,14 @@ export const api = {
     fetchApi<T>(endpoint, { ...options, method: "DELETE" }),
 
   status: {
-    ping: () => api.get<SystemStatusResult>("/status/ping"),
+    ping: () => api.get<PingResult | null>("/status/ping"),
     log: (pagination: Pagination, options?: RequestInit) =>
       api.post<AuditLog[]>("/status/log", pagination, options),
   },
 
   zfs: {
-    list: (filter = "", options?: RequestInit) => api.post<ZFSEntry[]>("/zfs/list", filter, options),
+    list: (filter = "", options?: RequestInit) =>
+      api.post<ZFSEntry[]>("/zfs/list", filter, options),
     createDataset: (dataset: ZFSDataset, options?: RequestInit) =>
       api.post<void>("/zfs/create_dataset", dataset, options),
     createVolume: (volume: ZFSVolume, options?: RequestInit) =>
@@ -130,7 +136,7 @@ export const api = {
     destroy: (name: string, options?: RequestInit) => api.post<void>("/zfs/destroy", name, options),
   },
   users: {
-    list: (pagination?: Pagination, options?: RequestInit) => 
+    list: (pagination?: Pagination, options?: RequestInit) =>
       api.post<UserList>("/users", pagination || {}, options),
     create: (user: UserCreateRequest, options?: RequestInit) =>
       api.put<UserData>("/users", { id: 0, ...user }, options),
@@ -138,7 +144,8 @@ export const api = {
       api.post<UserUpdateRequest>(`/user/${user.id}`, user, options),
     get: (userId: number, options?: RequestInit) => api.get<UserData>(`/user/${userId}`, options),
     destroy: (userId: number, options?: RequestInit) => api.delete(`/user/${userId}`, options),
-    restore: (userId: number, options?: RequestInit) => api.post<UserData>(`/user/${userId}/restore`, {}, options),
+    restore: (userId: number, options?: RequestInit) =>
+      api.post<UserData>(`/user/${userId}/restore`, {}, options),
   },
   session: {
     login: (login: Login, options?: RequestInit) =>

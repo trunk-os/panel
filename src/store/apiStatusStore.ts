@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "../api/client";
-import type { SystemStatus } from "@/api/types";
+import type { SystemStatus, HealthStatus } from "@/api/types";
 
 const STATUS_POLLING_INTERVAL = 30000; // TODO: Move this to settings
 
@@ -9,6 +9,7 @@ interface ApiStatusState {
   lastChecked: Date | null;
   isPolling: boolean;
   systemStatus: SystemStatus | null;
+  healthStatus: HealthStatus | null;
   checkApiStatus: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -21,6 +22,7 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
   lastChecked: null,
   isPolling: false,
   systemStatus: null,
+  healthStatus: null,
 
   checkApiStatus: async () => {
     set({ status: "loading" });
@@ -34,14 +36,17 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
           status: "error",
           lastChecked: new Date(),
           systemStatus: null,
+          healthStatus: null,
         });
       } else {
         console.log("[checkApiStatus] ", result.data.info);
         const systemStatus = result.data.info as SystemStatus;
+        const healthStatus = result.data.health;
         set({
           status: "ok",
           lastChecked: new Date(),
           systemStatus,
+          healthStatus,
         });
       }
     } catch (_) {
@@ -49,6 +54,7 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
         status: "error",
         lastChecked: new Date(),
         systemStatus: null,
+        healthStatus: null,
       });
     }
   },

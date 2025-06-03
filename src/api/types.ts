@@ -25,6 +25,20 @@ export interface SystemStatusResult {
   info: SystemStatus;
 }
 
+export interface PingResult {
+  health: HealthStatus;
+  info?: SystemStatus;
+}
+
+export interface HealthStatus {
+  buckle: Health;
+}
+
+export interface Health {
+  error?: string;
+  latency?: number;
+}
+
 export type ZFSType = "Dataset" | "Volume";
 
 export interface ZFSEntry {
@@ -41,7 +55,6 @@ export interface ZFSEntry {
 export interface ZFSListFilter {
   filter: string;
 }
-
 
 export interface ZFSName {
   name: string;
