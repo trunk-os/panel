@@ -277,7 +277,3 @@ The container build process will:
 - Use the `.env.production` file to configure the API base URL at build time
 - Build the React application with production optimizations
 - Serve the static files using a lightweight web server
-
-## License
-
-[MIT](LICENSE)
