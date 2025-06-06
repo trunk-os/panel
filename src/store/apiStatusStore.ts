@@ -31,7 +31,7 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
       const result = await api.status.ping();
       console.log("[checkApiStatus] ", result);
 
-      if (result === undefined) {
+      if (result === undefined || result.data === null) {
         set({
           status: "error",
           lastChecked: new Date(),
