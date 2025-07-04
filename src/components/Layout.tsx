@@ -1,12 +1,8 @@
-import { useState, useEffect } from "react";
-import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
   IconButton,
@@ -25,6 +21,7 @@ import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
 import { useAuthStore } from "@/store/authStore";
 import trunkLogo from "@/assets/logos/new_trunk_header.png";
+import Sidebar from "./Sidebar";
 
 const drawerWidth = 240;
 
@@ -57,28 +54,6 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 
 const toolbarHeight = 64;
 
-const menuItems = [
-  {
-    label: "Dashboard",
-    path: "/dashboard",
-    icon: "dashboard",
-  },
-  {
-    label: "Disk",
-    path: "/disk",
-    icon: "storage",
-  },
-  {
-    label: "Users",
-    path: "/users",
-    icon: "group",
-  },
-  {
-    label: "Settings",
-    path: "/settings",
-    icon: "settings",
-  },
-];
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -106,22 +81,6 @@ export default function Layout() {
     logout();
   };
 
-  const drawer = (
-    <>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton component={RouterLink} to={item.path}>
-              <ListItemIcon>
-                <span className="material-symbols-outlined">{item.icon}</span>
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </>
-  );
 
   return (
     <Box
@@ -227,24 +186,7 @@ export default function Layout() {
           </Grid>
         </Toolbar>
       </AppBar>
-      <Drawer
-        variant={isMobile ? "temporary" : "permanent"}
-        open={sidebarOpen}
-        onClose={handleDrawerToggle}
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            marginTop: "64px", // Height of AppBar/Toolbar
-            height: "calc(100% - 64px)", // Subtract AppBar height
-            position: isMobile ? "fixed" : "absolute",
-          },
-        }}
-      >
-        {drawer}
-      </Drawer>
+      <Sidebar open={sidebarOpen} onClose={handleDrawerToggle} />
       <Main sx={{ pl: 0, ml: 10 }} open={sidebarOpen}>
         <Box sx={{ height: toolbarHeight, flexShrink: 0 }} />
         <Container

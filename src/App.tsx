@@ -7,6 +7,8 @@ import Layout from "@/components/Layout";
 import NotFound from "@/components/NotFound";
 import ZFSPage from "@/components/ZFSPage";
 import UserManagementPage from "@/components/UserManagementPage";
+import ServicesScreen from "@/components/services/ServicesScreen";
+import PackagesScreen from "@/components/packages/PackagesScreen";
 import { LoginPage } from "@/components/LoginPage";
 import { AuthGuard } from "@/components/AuthGuard";
 import { AuthInitializer } from "@/components/AuthInitializer";
@@ -73,6 +75,8 @@ export function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="disk" element={<ZFSPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="services" element={<ServicesScreen />} />
+          <Route path="packages" element={<PackagesScreen />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
