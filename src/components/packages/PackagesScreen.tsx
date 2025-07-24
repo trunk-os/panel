@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Breadcrumbs,
-  Link,
-} from "@mui/material";
+import { Box, Typography, Card, CardContent, Breadcrumbs, Link } from "@mui/material";
 import { PackageSearch } from "./PackageSearch";
 import { PackagesList } from "./PackagesList";
 import { ConfigurationDialog } from "./ConfigurationDialog";
@@ -41,34 +34,30 @@ export default function PackagesScreen() {
   return (
     <Box sx={{ p: 3 }}>
       <Breadcrumbs sx={{ mb: 2 }}>
-        <Link 
-          component="button" 
-          variant="body2" 
-          onClick={() => navigate("/services")}
+        <Link
+          component="button"
+          variant="body2"
+          onClick={() => navigate("/packages")}
           sx={{ textDecoration: "none" }}
         >
-          Services
+          Packages
         </Link>
         <Typography variant="body2" color="text.primary">
-          Add Service
+          Add Package
         </Typography>
       </Breadcrumbs>
-      
+
       <Typography variant="h4" component="h1" gutterBottom>
         Install Package
       </Typography>
-      
+
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <PackageSearch onSearch={handleSearch} />
         </CardContent>
       </Card>
 
-      <PackagesList
-        packages={packages}
-        loading={loading}
-        onInstall={handleInstallPackage}
-      />
+      <PackagesList packages={packages} loading={loading} onInstall={handleInstallPackage} />
 
       <ConfigurationDialog
         open={configDialogOpen}

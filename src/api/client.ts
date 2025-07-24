@@ -305,6 +305,8 @@ export const api = {
       api.post<PromptResponses>("/packages/get_responses", pkg, options),
     listInstalled: (options?: RequestInit) =>
       api.get<PackageTitle[]>("/packages/list_installed", options),
+    listAvailable: (options?: RequestInit) =>
+      api.get<PackageTitle[]>("/packages/list_available", options),
     installed: (pkg: PackageTitle, options?: RequestInit) =>
       api.post<boolean>("/packages/installed", pkg, options),
     install: (pkg: PackageTitle, options?: RequestInit) =>

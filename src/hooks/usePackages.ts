@@ -14,13 +14,13 @@ export function usePackages() {
     try {
       setLoading(true);
       setError(null);
-      // Get installed packages for now since we don't have a search endpoint
-      const response = await api.packages.listInstalled();
+      // Get available packages from registry
+      const response = await api.packages.listAvailable();
       const packagesData: Package[] = response.data.map(pkg => ({
         name: pkg.name,
         version: pkg.version,
         description: `Package ${pkg.name}`,
-        category: "installed"
+        category: "available"
       }));
       setPackages(packagesData);
     } catch (err) {
