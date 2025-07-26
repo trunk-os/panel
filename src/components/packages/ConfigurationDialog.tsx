@@ -23,12 +23,16 @@ interface ConfigurationDialogProps {
   onClose: () => void;
 }
 
-export function ConfigurationDialog({ open, package: pkg, onClose }: ConfigurationDialogProps) {
-  const { 
-    prompts, 
+export function ConfigurationDialog({
+  open,
+  package: pkg,
+  onClose,
+}: ConfigurationDialogProps) {
+  const {
+    prompts,
     responses,
-    currentStep, 
-    loading, 
+    currentStep,
+    loading,
     error,
     isFirstStep,
     isLastStep,
@@ -41,12 +45,12 @@ export function ConfigurationDialog({ open, package: pkg, onClose }: Configurati
     submitConfiguration,
     reset,
   } = useConfiguration();
-  
+
   const { installPackage } = usePackages();
 
   useEffect(() => {
     if (open && pkg) {
-      fetchPrompts(pkg.name);
+      fetchPrompts(pkg.name, pkg.version);
     } else if (!open) {
       reset();
     }
@@ -67,7 +71,7 @@ export function ConfigurationDialog({ open, package: pkg, onClose }: Configurati
       if (prompts.length > 0) {
         await submitConfiguration(pkg.name);
       }
-      await installPackage(pkg.name);
+      await installPackage(pkg.name, pkg.version);
       onClose();
     } catch (error) {
       console.error("Installation failed:", error);
@@ -131,15 +135,15 @@ export function ConfigurationDialog({ open, package: pkg, onClose }: Configurati
 
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        
+
         {prompts.length > 0 && !isFirstStep && (
           <Button onClick={previousStep} disabled={loading}>
             Previous
           </Button>
         )}
-        
+
         {prompts.length === 0 ? (
-          <Button 
+          <Button
             onClick={handleInstall}
             variant="contained"
             disabled={loading}

@@ -36,7 +36,7 @@ export function usePackages() {
   );
 
   const installPackage = useCallback(
-    async (packageName: string, version = "latest") => {
+    async (packageName: string, version: version) => {
       try {
         await api.packages.install({ name: packageName, version });
         showToast({
