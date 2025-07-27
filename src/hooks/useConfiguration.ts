@@ -38,32 +38,29 @@ export function useConfiguration() {
     [showToast]
   );
 
-  const validateResponse = useCallback(
-    (input: object, type: string): boolean => {
-      const result = (() => {
-        const value = input[type];
-        if (value === undefined) {
+  const validateResponse = useCallback((input: any, type: string): boolean => {
+    const result = (() => {
+      const value = input[type];
+      if (value === undefined) {
+        return false;
+      }
+      switch (type) {
+        case "integer":
+          return /^\d+$/.test(value) && Number.parseInt(value, 10) >= 0;
+        case "signed_integer":
+          return /^-?\d+$/.test(value);
+        case "string":
+        case "name":
+          return value.trim().length > 0;
+        case "boolean":
+          return value === "true" || value === "false";
+        default:
           return false;
-        }
-        switch (type) {
-          case "integer":
-            return /^\d+$/.test(value) && Number.parseInt(value, 10) >= 0;
-          case "signed_integer":
-            return /^-?\d+$/.test(value);
-          case "string":
-          case "name":
-            return value.trim().length > 0;
-          case "boolean":
-            return value === "true" || value === "false";
-          default:
-            return false;
-        }
-      })();
+      }
+    })();
 
-      return result;
-    },
-    []
-  );
+    return result;
+  }, []);
 
   const setResponse = useCallback(
     (template: string, input_type: string, input: string) => {

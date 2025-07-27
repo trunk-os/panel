@@ -53,10 +53,6 @@ export interface Package {
   category?: string;
 }
 
-export interface PromptCollection {
-  prompts: Prompt[];
-}
-
 export enum PromptType {
   Integer = 0,
   SignedInteger = 1,
@@ -72,7 +68,7 @@ export interface Prompt {
 
 export interface PromptResponse {
   template: string;
-  input: string;
+  input: any;
 }
 
 export interface PromptResponses {

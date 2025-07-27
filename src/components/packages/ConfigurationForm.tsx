@@ -14,8 +14,8 @@ interface ConfigurationFormProps {
   step: number;
   totalSteps: number;
   responses: PromptResponse[];
-  setResponse: (template: string, input: string) => void;
-  validateResponse: (value: string, type: string) => boolean;
+  setResponse: (template: string, input_type: string, input: string) => void;
+  validateResponse: (input: any, type: string) => boolean;
 }
 
 export function ConfigurationForm({
@@ -38,7 +38,7 @@ export function ConfigurationForm({
       setValue(existingResponse.input[prompt.input_type]);
     } else {
       // Set default values based on prompt type
-      let defaultValue = "";
+      let defaultValue: any = "";
       switch (prompt.input_type) {
         case "boolean":
           defaultValue = "false";
@@ -58,11 +58,20 @@ export function ConfigurationForm({
     // Always set the response so the hook can track it
     setResponse(prompt.template, prompt.input_type, newValue);
 
-    const isValid = validateResponse(existingResponse.input, prompt.input_type);
+    // this check is to make typescript happy, existingResponse should always
+    // be set after setResponse is set. Not sure why we can't pass this data
+    // around, but whatever.
 
-    // Show validation error if value is invalid and not empty
-    if (!isValid) {
-      setError(getValidationError(prompt.input_type));
+    if (existingResponse) {
+      const isValid = validateResponse(
+        existingResponse.input,
+        prompt.input_type
+      );
+
+      // Show validation error if value is invalid and not empty
+      if (!isValid) {
+        setError(getValidationError(prompt.input_type));
+      }
     }
   };
 

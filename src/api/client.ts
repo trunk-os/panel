@@ -24,7 +24,6 @@ import type {
   LogMessage,
   Package,
   PackageTitle,
-  PromptCollection,
   Prompt,
   PromptResponses,
   PromptResponsesWithName,
@@ -378,7 +377,7 @@ export const api = {
 
   packages: {
     getPrompts: (pkg: PackageTitle, options?: RequestInit) =>
-      api.post<PromptCollection>("/packages/prompts", pkg, options),
+      api.post<Prompt[]>("/packages/prompts", pkg, options),
     setResponses: (responses: PromptResponsesWithName, options?: RequestInit) =>
       api.post<void>("/packages/set_responses", responses, options),
     getResponses: (pkg: PackageTitle, options?: RequestInit) =>
