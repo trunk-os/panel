@@ -14,7 +14,7 @@ interface ConfigurationFormProps {
   step: number;
   totalSteps: number;
   responses: PromptResponse[];
-  setResponse: (template: string, response: string) => void;
+  setResponse: (template: string, input: string) => void;
   validateResponse: (value: string, type: string) => boolean;
 }
 
@@ -35,15 +35,18 @@ export function ConfigurationForm({
 
   useEffect(() => {
     if (existingResponse) {
-      setValue(existingResponse.response);
+      setValue(existingResponse.input[prompt.input_type]);
     } else {
       // Set default values based on prompt type
-      const defaultValue = prompt.input_type === "boolean" ? "false" : "";
-      setValue(defaultValue);
-      // Set the default response for boolean fields
-      if (prompt.input_type === "boolean") {
-        setResponse(prompt.template, defaultValue);
+      let defaultValue = "";
+      switch (prompt.input_type) {
+        case "boolean":
+          defaultValue = "false";
+        case "integer":
+        case "signed_integer":
+          defaultValue = 0;
       }
+      setValue(defaultValue);
     }
     setError("");
   }, [existingResponse, prompt.template, prompt.input_type, setResponse]);
@@ -53,12 +56,12 @@ export function ConfigurationForm({
     setError("");
 
     // Always set the response so the hook can track it
-    setResponse(prompt.template, newValue);
+    setResponse(prompt.template, prompt.input_type, newValue);
 
-    const isValid = validateResponse(newValue, prompt.input_type);
+    const isValid = validateResponse(existingResponse.input, prompt.input_type);
 
     // Show validation error if value is invalid and not empty
-    if (newValue.trim() !== "" && !isValid) {
+    if (!isValid) {
       setError(getValidationError(prompt.input_type));
     }
   };
@@ -70,7 +73,6 @@ export function ConfigurationForm({
       case "signed_integer":
         return "Please enter a valid integer";
       case "string":
-      case "name":
         return "This field is required";
       case "boolean":
         return "Please select true or false";
@@ -100,7 +102,6 @@ export function ConfigurationForm({
         );
 
       case "string":
-      case "name":
         return (
           <TextField
             label={prompt.question}

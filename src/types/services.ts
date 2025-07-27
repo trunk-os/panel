@@ -72,7 +72,7 @@ export interface Prompt {
 
 export interface PromptResponse {
   template: string;
-  response: string;
+  input: string;
 }
 
 export interface PromptResponses {

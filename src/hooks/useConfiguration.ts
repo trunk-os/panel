@@ -39,8 +39,12 @@ export function useConfiguration() {
   );
 
   const validateResponse = useCallback(
-    (value: string, type: string): boolean => {
+    (input: object, type: string): boolean => {
       const result = (() => {
+        const value = input[type];
+        if (value === undefined) {
+          return false;
+        }
         switch (type) {
           case "integer":
             return /^\d+$/.test(value) && Number.parseInt(value, 10) >= 0;
@@ -61,17 +65,20 @@ export function useConfiguration() {
     []
   );
 
-  const setResponse = useCallback((template: string, response: string) => {
-    setResponses((prev) => {
-      const existing = prev.findIndex((r) => r.template === template);
-      if (existing >= 0) {
-        const updated = [...prev];
-        updated[existing] = { template, response };
-        return updated;
-      }
-      return [...prev, { template, response }];
-    });
-  }, []);
+  const setResponse = useCallback(
+    (template: string, input_type: string, input: string) => {
+      setResponses((prev) => {
+        const existing = prev.findIndex((r) => r.template === template);
+        if (existing >= 0) {
+          const updated = [...prev];
+          updated[existing] = { template, input: { [input_type]: input } };
+          return updated;
+        }
+        return [...prev, { template, input: { [input_type]: input } }];
+      });
+    },
+    []
+  );
 
   const nextStep = useCallback(() => {
     if (currentStep < prompts.length - 1) {
@@ -126,7 +133,7 @@ export function useConfiguration() {
   );
   const isResponseValid =
     currentResponse && currentPrompt
-      ? validateResponse(currentResponse.response, currentPrompt.input_type)
+      ? validateResponse(currentResponse.input, currentPrompt.input_type)
       : false;
   const canProceed =
     prompts.length > 0 &&
