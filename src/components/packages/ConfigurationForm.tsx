@@ -8,7 +8,6 @@ import {
   Alert,
 } from "@mui/material";
 import type { Prompt, PromptResponse } from "@/types/services";
-import { PromptType } from "@/types/services";
 
 interface ConfigurationFormProps {
   prompt: Prompt;
@@ -16,32 +15,33 @@ interface ConfigurationFormProps {
   totalSteps: number;
   responses: PromptResponse[];
   setResponse: (template: string, response: string) => void;
-  validateResponse: (value: string, type: PromptType | number) => boolean;
+  validateResponse: (value: string, type: string) => boolean;
 }
 
-export function ConfigurationForm({ 
-  prompt, 
-  step, 
-  totalSteps, 
-  responses, 
-  setResponse, 
-  validateResponse 
+export function ConfigurationForm({
+  prompt,
+  step,
+  totalSteps,
+  responses,
+  setResponse,
+  validateResponse,
 }: ConfigurationFormProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
 
-
-  const existingResponse = responses.find(r => r.template === prompt.template);
+  const existingResponse = responses.find(
+    (r) => r.template === prompt.template
+  );
 
   useEffect(() => {
     if (existingResponse) {
       setValue(existingResponse.response);
     } else {
       // Set default values based on prompt type
-      const defaultValue = prompt.input_type === PromptType.Boolean ? "false" : "";
+      const defaultValue = prompt.input_type === "boolean" ? "false" : "";
       setValue(defaultValue);
       // Set the default response for boolean fields
-      if (prompt.input_type === PromptType.Boolean) {
+      if (prompt.input_type === "boolean") {
         setResponse(prompt.template, defaultValue);
       }
     }
@@ -63,15 +63,16 @@ export function ConfigurationForm({
     }
   };
 
-  const getValidationError = (type: PromptType): string => {
+  const getValidationError = (type: string): string => {
     switch (type) {
-      case PromptType.Integer:
+      case "integer":
         return "Please enter a valid positive integer";
-      case PromptType.SignedInteger:
+      case "signed_integer":
         return "Please enter a valid integer";
-      case PromptType.String:
+      case "string":
+      case "name":
         return "This field is required";
-      case PromptType.Boolean:
+      case "boolean":
         return "Please select true or false";
       default:
         return "Invalid value";
@@ -80,8 +81,8 @@ export function ConfigurationForm({
 
   const renderInput = () => {
     switch (prompt.input_type) {
-      case PromptType.Integer:
-      case PromptType.SignedInteger:
+      case "integer":
+      case "signed_integer":
         return (
           <TextField
             label={prompt.question}
@@ -93,12 +94,13 @@ export function ConfigurationForm({
             fullWidth
             margin="normal"
             inputProps={{
-              min: prompt.input_type === PromptType.Integer ? 0 : undefined,
+              min: 0,
             }}
           />
         );
 
-      case PromptType.String:
+      case "string":
+      case "name":
         return (
           <TextField
             label={prompt.question}
@@ -113,14 +115,16 @@ export function ConfigurationForm({
           />
         );
 
-      case PromptType.Boolean:
+      case "boolean":
         return (
           <Box sx={{ mt: 2, mb: 1 }}>
             <FormControlLabel
               control={
                 <Switch
                   checked={value === "true"}
-                  onChange={(e) => handleValueChange(e.target.checked ? "true" : "false")}
+                  onChange={(e) =>
+                    handleValueChange(e.target.checked ? "true" : "false")
+                  }
                 />
               }
               label={prompt.question}
@@ -147,7 +151,7 @@ export function ConfigurationForm({
       <Typography variant="h6" gutterBottom>
         Step {step + 1} of {totalSteps}
       </Typography>
-      
+
       {prompt.template && (
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Configuration: {prompt.template}

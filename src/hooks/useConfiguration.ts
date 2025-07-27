@@ -21,7 +21,7 @@ export function useConfiguration() {
           name: packageName,
           version: version,
         });
-        setPrompts(response.data.prompts);
+        setPrompts(response.data);
         setResponses([]);
         setCurrentStep(0);
       } catch (err) {
@@ -39,23 +39,17 @@ export function useConfiguration() {
   );
 
   const validateResponse = useCallback(
-    (value: string, type: PromptType | number): boolean => {
-      // Convert number to enum if needed
-      const enumType = typeof type === "number" ? (type as PromptType) : type;
-
+    (value: string, type: string): boolean => {
       const result = (() => {
-        switch (enumType) {
-          case PromptType.Integer:
-          case 0:
+        switch (type) {
+          case "integer":
             return /^\d+$/.test(value) && Number.parseInt(value, 10) >= 0;
-          case PromptType.SignedInteger:
-          case 1:
+          case "signed_integer":
             return /^-?\d+$/.test(value);
-          case PromptType.String:
-          case 2:
+          case "string":
+          case "name":
             return value.trim().length > 0;
-          case PromptType.Boolean:
-          case 3:
+          case "boolean":
             return value === "true" || value === "false";
           default:
             return false;

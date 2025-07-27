@@ -67,7 +67,7 @@ export enum PromptType {
 export interface Prompt {
   template: string;
   question: string;
-  input_type: PromptType | number;
+  input_type: string;
 }
 
 export interface PromptResponse {
