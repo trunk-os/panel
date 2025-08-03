@@ -1,6 +1,6 @@
 // Mock data for API client tests
 import type { UserData, UserCreateRequest } from "../types";
-import type { Service, Package, ServiceLog, Prompt, PromptType } from "@/types/services";
+import type { Service, Package, ServiceLog, Prompt } from "@/types/services";
 
 export interface User {
   id: number;

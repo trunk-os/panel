@@ -37,18 +37,24 @@ export function LoginPage() {
   const from = location.state?.from || "/dashboard";
 
   useEffect(() => {
-    const checkNeedsSetup = async () => {
-      if (isAuthenticated) {
-        const requires = await needsSetup(api);
-        console.log("[checkNeedsSetup] Requires: ", requires);
-        if (requires) {
-          navigate("/setup", { replace: true });
-        } else {
-          navigate(from, { replace: true });
+    // Only check setup needs if user is authenticated and not currently loading
+    if (isAuthenticated) {
+      const checkNeedsSetup = async () => {
+        try {
+          const requires = await needsSetup(api);
+          console.log("[checkNeedsSetup] Requires: ", requires);
+          if (requires) {
+            navigate("/setup", { replace: true });
+          } else {
+            navigate(from, { replace: true });
+          }
+        } catch (error) {
+          console.error("[checkNeedsSetup] Error checking setup status:", error);
+          // Don't navigate on error, stay on login page
         }
-      }
-    };
-    checkNeedsSetup();
+      };
+      checkNeedsSetup();
+    }
   }, [isAuthenticated, navigate, from, needsSetup]);
 
   const handleSubmit = async (e: React.FormEvent) => {

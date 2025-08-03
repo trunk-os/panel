@@ -53,12 +53,6 @@ export interface Package {
   category?: string;
 }
 
-export enum PromptType {
-  Integer = 0,
-  SignedInteger = 1,
-  String = 2,
-  Boolean = 3,
-}
 
 export interface Prompt {
   template: string;

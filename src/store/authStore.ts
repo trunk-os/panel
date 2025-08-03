@@ -74,20 +74,35 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initialize: async (apiClient: ApiClient) => {
-        const token = get().token;
+        const currentState = get();
+        const token = currentState.token;
+        
+        console.log('[authStore] initialize called with:', { 
+          hasToken: !!token, 
+          isLoading: currentState.isLoading,
+          isAuthenticated: currentState.isAuthenticated 
+        });
+        
         if (!token) {
-          set({ isLoading: false });
+          console.log('[authStore] No token, setting not authenticated');
+          set({ isLoading: false, isAuthenticated: false, user: null });
           return;
         }
 
+        // Don't prevent initialization just because isLoading is true
+        // This was causing the initialization to never run because the store starts with isLoading: true
+        console.log('[authStore] Starting token validation');
         set({ isLoading: true });
         try {
+          console.log('[authStore] Calling apiClient.session.me()');
           const me: UserData = (await apiClient.session.me()).data;
+          console.log('[authStore] Token validation successful, user:', me);
           set({
             user: me,
             isAuthenticated: true,
             isLoading: false,
           });
+          console.log('[authStore] Auth state updated to authenticated');
         } catch (error) {
           console.log("[authStore] Token validation failed:", error);
           console.log("[authStore] Error type:", error?.constructor?.name);
@@ -111,6 +126,7 @@ export const useAuthStore = create<AuthState>()(
             // For network errors or API unavailability, just stop loading but keep token
             set({
               isLoading: false,
+              isAuthenticated: false,
             });
           }
         }

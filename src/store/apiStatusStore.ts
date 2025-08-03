@@ -3,6 +3,12 @@ import { api } from "../api/client";
 import type { SystemStatus, HealthStatus } from "@/api/types";
 
 const STATUS_POLLING_INTERVAL = 30000; // TODO: Move this to settings
+const MAX_HISTORY_POINTS = 20; // Keep last 20 data points (10 minutes of history)
+
+interface MetricHistory {
+  cpuHistory: number[];
+  memoryHistory: number[];
+}
 
 interface ApiStatusState {
   status: "ok" | "error" | "loading";
@@ -10,6 +16,7 @@ interface ApiStatusState {
   isPolling: boolean;
   systemStatus: SystemStatus | null;
   healthStatus: HealthStatus | null;
+  metricHistory: MetricHistory;
   checkApiStatus: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -23,6 +30,10 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
   isPolling: false,
   systemStatus: null,
   healthStatus: null,
+  metricHistory: {
+    cpuHistory: [],
+    memoryHistory: [],
+  },
 
   checkApiStatus: async () => {
     set({ status: "loading" });
@@ -42,11 +53,24 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
         console.log("[checkApiStatus] ", result.data.info);
         const systemStatus = result.data.info as SystemStatus;
         const healthStatus = result.data.health;
+        
+        // Update metric history
+        const currentState = get();
+        const cpuUsage = Math.round(systemStatus.cpu_usage);
+        const memoryUsage = Math.round(((systemStatus.total_memory - systemStatus.available_memory) / systemStatus.total_memory) * 100);
+        
+        const newCpuHistory = [...currentState.metricHistory.cpuHistory, cpuUsage].slice(-MAX_HISTORY_POINTS);
+        const newMemoryHistory = [...currentState.metricHistory.memoryHistory, memoryUsage].slice(-MAX_HISTORY_POINTS);
+        
         set({
           status: "ok",
           lastChecked: new Date(),
           systemStatus,
           healthStatus,
+          metricHistory: {
+            cpuHistory: newCpuHistory,
+            memoryHistory: newMemoryHistory,
+          },
         });
       }
     } catch (_) {

@@ -1,17 +1,14 @@
 import { Typography, Card, CardContent, Box, useMediaQuery, useTheme } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
-import SystemStatusCard from "./metrics/SystemStatusCard";
-import DiskMetricCard from "./metrics/DiskMetricCard";
-import ComputeMetricCard from "./metrics/ComputeMetricCard";
-import ServiceHealthCard from "./metrics/ServiceHealthCard";
-import VMMetricCard from "./metrics/VMMetricCard";
-import ObjectStorageMetricCard from "./metrics/ObjectStorageMetricCard";
+import SystemHealthCard from "./metrics/SystemHealthCard";
+import ComputeStorageCard from "./metrics/ComputeStorageCard";
+import InfrastructureCard from "./metrics/InfrastructureCard";
 import SkeletonCard from "./SkeletonCard";
 import AuditLog from "./AuditLog";
 import { useApiStatusStore } from "@/store/apiStatusStore";
 
 const drawerWidth = 240;
-const cardHeight = 240;
+const cardHeight = 300;
 
 export default function Dashboard() {
   const theme = useTheme();
@@ -168,27 +165,15 @@ export default function Dashboard() {
           }}
         >
           <Box sx={{ flex: 1 }}>
-            <SystemStatusCard collapsed={true} />
+            <SystemHealthCard collapsed={true} />
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            <VMMetricCard collapsed={true} />
+            <ComputeStorageCard collapsed={true} />
           </Box>
 
           <Box sx={{ flex: 1 }}>
-            <ObjectStorageMetricCard collapsed={true} />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <ServiceHealthCard collapsed={true} />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <ComputeMetricCard collapsed={true} />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <DiskMetricCard collapsed={true} />
+            <InfrastructureCard collapsed={true} />
           </Box>
         </Box>
       )}
@@ -200,31 +185,17 @@ export default function Dashboard() {
           position: "relative",
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, mb: 2 }}>
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <SystemStatusCard />
-          </Box>
-
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <VMMetricCard />
-          </Box>
-
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <ObjectStorageMetricCard />
-          </Box>
-        </Box>
-
         <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <ServiceHealthCard />
+            <SystemHealthCard />
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <ComputeMetricCard />
+            <ComputeStorageCard />
           </Box>
 
           <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <DiskMetricCard />
+            <InfrastructureCard />
           </Box>
         </Box>
       </Box>

@@ -12,8 +12,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Debug logging
+  console.log('[AuthGuard] State:', { isAuthenticated, isLoading, pathname: location.pathname });
+
   useEffect(() => {
+    console.log('[AuthGuard] useEffect:', { isAuthenticated, isLoading, pathname: location.pathname });
     if (!isLoading && !isAuthenticated) {
+      console.log('[AuthGuard] Redirecting to login');
       navigate("/login", { 
         replace: true,
         state: { from: location.pathname }

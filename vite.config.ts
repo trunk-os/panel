@@ -38,8 +38,7 @@ export default defineConfig(({ command, mode }) => {
     hmr: {
       // Configure HMR to work with custom hostname
       host: env.DEV_HOST || "localhost",
-      port: 3000,
-      clientPort: 3000,
+      // Remove hardcoded ports - let Vite use whatever port it finds available
     },
     watch: {
       usePolling: true,

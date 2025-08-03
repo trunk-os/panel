@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { api } from "@/api/client";
 import type { Prompt, PromptResponse, PromptResponses } from "@/types/services";
-import { PromptType } from "@/types/services";
 import { useToastStore } from "@/store/toastStore";
 
 export function useConfiguration() {
