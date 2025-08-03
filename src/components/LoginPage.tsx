@@ -29,12 +29,19 @@ export function LoginPage() {
   const [error, setError] = useState<string>("");
   const [showCreateUser, setShowCreateUser] = useState(false);
 
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, authError, clearAuthError } = useAuthStore();
   const { needsSetup } = useSetupStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from || "/dashboard";
+
+  useEffect(() => {
+    // Clear any previous auth errors when component mounts
+    if (authError) {
+      clearAuthError();
+    }
+  }, [authError, clearAuthError]);
 
   useEffect(() => {
     // Only check setup needs if user is authenticated and not currently loading
@@ -61,14 +68,30 @@ export function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    
+    // Clear any previous auth errors
+    clearAuthError();
 
     try {
       await login({ username: formData.username, password: formData.password }, api);
+      // If successful, clear any local error state
+      setError("");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        if (err.statusCode === 401) {
+          setError("Invalid username or password");
+        } else if (err.statusCode === 403) {
+          setError("Access denied. Please check your credentials");
+        } else if (err.message.includes("ERR_CONNECTION_REFUSED") || 
+                   err.message.includes("ECONNREFUSED") ||
+                   err.message.includes("ERR_NETWORK") ||
+                   err.message.includes("Failed to fetch")) {
+          setError("Unable to connect to server. Please check your connection");
+        } else {
+          setError(err.message || "Login failed. Please try again");
+        }
       } else {
-        setError("An unexpected error occurred");
+        setError("An unexpected error occurred. Please try again");
       }
     } finally {
       setIsLoading(false);
@@ -76,6 +99,11 @@ export function LoginPage() {
   };
 
   const handleInputChange = (field: keyof Login) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Clear error when user starts typing
+    if (error) {
+      setError("");
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [field]: e.target.value,
@@ -153,7 +181,7 @@ export function LoginPage() {
 
                   {error && (
                     <Typography variant="body2" color="error">
-                      Authentication failed
+                      {error}
                     </Typography>
                   )}
 

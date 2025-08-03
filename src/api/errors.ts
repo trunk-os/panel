@@ -41,8 +41,15 @@ export async function handleApiErrorResponse(
   response: Response,
   clearToken: () => void
 ): Promise<never> {
-  if (response.status === 401) {
+  // Handle authentication and authorization errors with better logic
+  if (response.status === 401 || response.status === 403) {
+    console.log(`[handleApiErrorResponse] ${response.status} error, clearing token and redirecting`);
     clearToken();
+    
+    // Only redirect to login if not already there (and window exists - not in tests)
+    if (typeof window !== 'undefined' && window.location.hash !== '#/login') {
+      window.location.hash = '#/login';
+    }
   }
 
   try {
@@ -60,10 +67,10 @@ export async function handleApiErrorResponse(
     }
 
     if (isProblemDetails(errorData)) {
-      if (errorData.status === 401) {
-        clearToken();
+      // Don't show toast for auth errors as they're handled by auth flow
+      if (response.status !== 401 && response.status !== 403) {
+        showErrorToast(errorData);
       }
-      showErrorToast(errorData);
       throw new ApiError(
         errorData.detail || errorData.title || response.statusText,
         response.status,
@@ -74,9 +81,6 @@ export async function handleApiErrorResponse(
 
     if (typeof errorData === "object" && errorData !== null) {
       const data = errorData as Record<string, unknown>;
-      if (data?.status === 401) {
-        clearToken();
-      }
       
       const error = new ApiError(
         (data?.message as string) || response.statusText,
@@ -84,19 +88,29 @@ export async function handleApiErrorResponse(
         data?.errorCode as string,
         data?.details as Record<string, unknown>
       );
-      showErrorToast(error);
+      
+      // Don't show toast for auth errors as they're handled by auth flow
+      if (response.status !== 401 && response.status !== 403) {
+        showErrorToast(error);
+      }
       throw error;
     }
 
     const error = new ApiError(response.statusText, response.status);
-    showErrorToast(error);
+    // Don't show toast for auth errors as they're handled by auth flow
+    if (response.status !== 401 && response.status !== 403) {
+      showErrorToast(error);
+    }
     throw error;
   } catch (parseError) {
     if (parseError instanceof ApiError) {
       throw parseError;
     }
     const error = new ApiError(response.statusText, response.status);
-    showErrorToast(error);
+    // Don't show toast for auth errors as they're handled by auth flow
+    if (response.status !== 401 && response.status !== 403) {
+      showErrorToast(error);
+    }
     throw error;
   }
 }

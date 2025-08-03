@@ -231,7 +231,7 @@ describe("API Client", () => {
       const errorData = { status: 401, message: "Token expired" };
       const mockFetch = mock(() => 
         Promise.resolve(new Response(JSON.stringify(errorData), { 
-          status: 400,
+          status: 401,
           headers: { "Content-Type": "application/json" }
         }))
       );
@@ -264,7 +264,8 @@ describe("API Client", () => {
       const result = await api.status.ping();
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(result).toBe(true);
+      expect(result.data.status).toBe("ok");
+      expect(result.statusCode).toBe(200);
     });
 
     test("api.get should call fetch with GET method", async () => {

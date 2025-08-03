@@ -1,14 +1,16 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Typography, Stack } from "@mui/material";
 import { useAuthStore } from "@/store/authStore";
+import { useConnectionStore } from "@/store/connectionStore";
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, authError } = useAuthStore();
+  const { lastConnectionError } = useConnectionStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,6 +29,14 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }, [isAuthenticated, isLoading, navigate, location.pathname]);
 
   if (isLoading) {
+    let loadingMessage = "Authenticating...";
+    
+    if (lastConnectionError) {
+      loadingMessage = "Connecting to server...";
+    } else if (authError) {
+      loadingMessage = "Validating session...";
+    }
+    
     return (
       <Box
         sx={{
@@ -36,7 +46,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
           justifyContent: "center",
         }}
       >
-        <CircularProgress />
+        <Stack spacing={2} alignItems="center">
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary">
+            {loadingMessage}
+          </Typography>
+        </Stack>
       </Box>
     );
   }
