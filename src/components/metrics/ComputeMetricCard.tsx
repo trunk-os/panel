@@ -10,14 +10,19 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
   const isLoading = status === "loading" || !systemStatus;
 
   const formatBytes = (bytes: number): string => {
-    const gb = bytes / (1024 ** 3);
+    const gb = bytes / 1024 ** 3;
     return `${gb.toFixed(1)} GB`;
   };
 
   const cpuUsage = systemStatus ? Math.round(systemStatus.cpu_usage) : 0;
   const cpuCount = systemStatus ? systemStatus.cpus : 0;
   const loadAverage = systemStatus ? systemStatus.load_average[0].toFixed(2) : "0.00";
-  const memoryPercentage = systemStatus ? Math.round(((systemStatus.total_memory - systemStatus.available_memory) / systemStatus.total_memory) * 100) : 0;
+  const memoryPercentage = systemStatus
+    ? Math.round(
+        ((systemStatus.total_memory - systemStatus.available_memory) / systemStatus.total_memory) *
+          100
+      )
+    : 0;
   const totalMemory = systemStatus ? systemStatus.total_memory : 0;
   const usedMemory = systemStatus ? systemStatus.total_memory - systemStatus.available_memory : 0;
 
@@ -57,7 +62,11 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
           <Grid container spacing={1} sx={{ flexGrow: 1 }}>
             <Grid item xs={6}>
               <Box sx={{ textAlign: "center", p: 0.5 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mb: 0.5, display: "block" }}
+                >
                   CPU Usage
                 </Typography>
                 <Typography variant="h6" color="secondary.main" sx={{ mb: 0.5 }}>
@@ -74,7 +83,11 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
 
             <Grid item xs={6}>
               <Box sx={{ textAlign: "center", p: 0.5 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mb: 0.5, display: "block" }}
+                >
                   Memory
                 </Typography>
                 <Typography variant="h6" color="secondary.main" sx={{ mb: 0.5 }}>
@@ -83,7 +96,13 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
                 <LinearProgress
                   variant="determinate"
                   value={memoryPercentage}
-                  color={memoryPercentage > 90 ? "error" : memoryPercentage > 70 ? "warning" : "secondary"}
+                  color={
+                    memoryPercentage > 90
+                      ? "error"
+                      : memoryPercentage > 70
+                        ? "warning"
+                        : "secondary"
+                  }
                   sx={{ height: 4, borderRadius: 2 }}
                 />
               </Box>
@@ -91,7 +110,11 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
 
             <Grid item xs={6}>
               <Box sx={{ textAlign: "center", p: 0.5 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mb: 0.5, display: "block" }}
+                >
                   CPU Count
                 </Typography>
                 <Typography variant="h6" color="secondary.main">
@@ -102,7 +125,11 @@ export default function ComputeMetricCard({ collapsed = false }: ComputeMetricCa
 
             <Grid item xs={6}>
               <Box sx={{ textAlign: "center", p: 0.5 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mb: 0.5, display: "block" }}
+                >
                   Load Average
                 </Typography>
                 <Typography variant="h6" color="secondary.main">

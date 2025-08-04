@@ -20,7 +20,7 @@ export const DEFAULT_VISIBLE_COLUMNS: ServiceColumn[] = ["status", "description"
 
 export const DEFAULT_COLUMN_ORDER: ServiceColumn[] = [
   "status",
-  "name", 
+  "name",
   "description",
   "version",
   "uptime",
@@ -37,12 +37,12 @@ export const DEFAULT_COLUMN_ORDER: ServiceColumn[] = [
   "job_id",
   "job_type",
   "job_object_path",
-  "actions"
+  "actions",
 ];
 
 export const ALL_AVAILABLE_COLUMNS: ServiceColumn[] = [
   "status",
-  "name", 
+  "name",
   "description",
   "version",
   "uptime",
@@ -59,13 +59,13 @@ export const ALL_AVAILABLE_COLUMNS: ServiceColumn[] = [
   "job_id",
   "job_type",
   "job_object_path",
-  "actions"
+  "actions",
 ];
 
 export const COLUMN_LABELS: Record<ServiceColumn, string> = {
   id: "ID",
   name: "Name",
-  version: "Version", 
+  version: "Version",
   description: "Description",
   status: "Status",
   uptime: "Uptime",
@@ -81,5 +81,5 @@ export const COLUMN_LABELS: Record<ServiceColumn, string> = {
   job_id: "Job ID",
   job_type: "Job Type",
   job_object_path: "Job Object Path",
-  actions: "Actions"
+  actions: "Actions",
 };

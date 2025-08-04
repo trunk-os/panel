@@ -14,7 +14,11 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
-import { Search as SearchIcon, Refresh as RefreshIcon, FilterList as FilterIcon } from "@mui/icons-material";
+import {
+  Search as SearchIcon,
+  Refresh as RefreshIcon,
+  FilterList as FilterIcon,
+} from "@mui/icons-material";
 import { ServicesList } from "./ServicesList";
 import { LogViewer } from "./LogViewer";
 import { useServices } from "@/hooks/useServices";
@@ -27,27 +31,34 @@ export default function ServicesScreen() {
   const { services, loading, refetch } = useServices();
 
   console.log(`[DEBUG UI] ServicesScreen: received ${services.length} services total`);
-  const containerServices = services.filter(s => 
-    s.name.includes('libpod-') || 
-    s.name.includes('gild') || 
-    s.name.includes('charond') || 
-    s.name.includes('buckled') ||
-    s.name.includes('caddy')
+  const containerServices = services.filter(
+    (s) =>
+      s.name.includes("libpod-") ||
+      s.name.includes("gild") ||
+      s.name.includes("charond") ||
+      s.name.includes("buckled") ||
+      s.name.includes("caddy")
   );
-  console.log(`[DEBUG UI] ServicesScreen: found ${containerServices.length} container services:`, containerServices.map(s => s.name));
+  console.log(
+    `[DEBUG UI] ServicesScreen: found ${containerServices.length} container services:`,
+    containerServices.map((s) => s.name)
+  );
 
   const availableStatuses = ["running", "stopped", "error", "installing", "configuring"];
 
-  const filteredServices = services.filter(service => {
-    const matchesText = service.name.toLowerCase().includes(filter.toLowerCase()) ||
-      (service.packageName?.toLowerCase().includes(filter.toLowerCase()));
-    
+  const filteredServices = services.filter((service) => {
+    const matchesText =
+      service.name.toLowerCase().includes(filter.toLowerCase()) ||
+      service.packageName?.toLowerCase().includes(filter.toLowerCase());
+
     const matchesStatus = statusFilters.length === 0 || statusFilters.includes(service.status);
-    
+
     return matchesText && matchesStatus;
   });
 
-  console.log(`[DEBUG UI] ServicesScreen: after filtering, ${filteredServices.length} services will be displayed`);
+  console.log(
+    `[DEBUG UI] ServicesScreen: after filtering, ${filteredServices.length} services will be displayed`
+  );
 
   const handleViewLogs = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -59,14 +70,13 @@ export default function ServicesScreen() {
     setSelectedServiceId(null);
   };
 
-
   const handleStatusFilterChange = (event: { target: { value: string | string[] } }) => {
     const value = event.target.value;
-    setStatusFilters(typeof value === 'string' ? value.split(',') : value);
+    setStatusFilters(typeof value === "string" ? value.split(",") : value);
   };
 
   const handleStatusFilterDelete = (statusToDelete: string) => {
-    setStatusFilters(statusFilters.filter(status => status !== statusToDelete));
+    setStatusFilters(statusFilters.filter((status) => status !== statusToDelete));
   };
 
   const getStatusColor = (status: string): "success" | "default" | "error" | "warning" => {
@@ -90,7 +100,7 @@ export default function ServicesScreen() {
       <Typography variant="h4" component="h1" gutterBottom>
         Services
       </Typography>
-      
+
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap" }}>
@@ -107,7 +117,7 @@ export default function ServicesScreen() {
               }}
               sx={{ flexGrow: 1, minWidth: 250 }}
             />
-            
+
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel id="status-filter-label">Filter by Status</InputLabel>
               <Select
@@ -122,7 +132,7 @@ export default function ServicesScreen() {
                   </InputAdornment>
                 }
                 renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((value) => (
                       <Chip
                         key={value}
@@ -140,9 +150,9 @@ export default function ServicesScreen() {
               >
                 {availableStatuses.map((status) => (
                   <MenuItem key={status} value={status}>
-                    <Chip 
-                      label={status} 
-                      size="small" 
+                    <Chip
+                      label={status}
+                      size="small"
                       color={getStatusColor(status)}
                       sx={{ mr: 1 }}
                     />
@@ -180,7 +190,7 @@ export default function ServicesScreen() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Active filters:
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {statusFilters.map((status) => (
                   <Chip
                     key={status}
@@ -196,11 +206,7 @@ export default function ServicesScreen() {
         </CardContent>
       </Card>
 
-      <ServicesList
-        services={filteredServices}
-        loading={loading}
-        onViewLogs={handleViewLogs}
-      />
+      <ServicesList services={filteredServices} loading={loading} onViewLogs={handleViewLogs} />
 
       <LogViewer
         open={logViewerOpen}

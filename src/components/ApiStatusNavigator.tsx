@@ -28,7 +28,10 @@ export function ApiStatusNavigator() {
   // Navigate to dashboard on connection errors, but only once per error
   useEffect(() => {
     if (isAuthenticated && lastConnectionError && location.pathname !== "/dashboard") {
-      console.log("[ApiStatusNavigator] Navigating to dashboard due to connection error at:", lastConnectionError);
+      console.log(
+        "[ApiStatusNavigator] Navigating to dashboard due to connection error at:",
+        lastConnectionError
+      );
       navigate("/dashboard", { replace: true });
       // Clear the connection error immediately after navigation to prevent repeated triggering
       clearConnectionError();

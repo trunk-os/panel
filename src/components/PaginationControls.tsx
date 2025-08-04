@@ -1,4 +1,12 @@
-import { Stack, Button, FormControl, InputLabel, Select, MenuItem, Typography } from "@mui/material";
+import {
+  Stack,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+} from "@mui/material";
 
 interface PaginationControlsProps {
   page: number;
@@ -15,7 +23,7 @@ export default function PaginationControls({
   hasNextPage,
   onPageChange,
   onPerPageChange,
-  perPageOptions = [20, 50, 100]
+  perPageOptions = [20, 50, 100],
 }: PaginationControlsProps) {
   const handlePrevPage = () => {
     if (page > 0) {
@@ -43,15 +51,15 @@ export default function PaginationControls({
       <Button variant="outlined" onClick={handlePrevPage} disabled={page <= 0}>
         Previous
       </Button>
-      
+
       <Typography variant="body2" color="text.secondary">
         Page {page + 1}
       </Typography>
-      
+
       <Button variant="outlined" onClick={handleNextPage} disabled={!hasNextPage}>
         Next
       </Button>
-      
+
       <FormControl size="small" sx={{ minWidth: 120 }}>
         <InputLabel>Per page</InputLabel>
         <Select

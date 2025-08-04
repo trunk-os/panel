@@ -11,58 +11,66 @@ export function useServiceLogs() {
   const { showToast } = useToastStore();
   const tailingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchLogs = useCallback(async (serviceId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.services.logs(serviceId);
-      setLogs(response.data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch service logs";
-      setError(errorMessage);
-      showToast({ message: errorMessage, severity: "error" });
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  const startTailing = useCallback(async (serviceId: string) => {
-    if (tailingIntervalRef.current) {
-      clearInterval(tailingIntervalRef.current);
-    }
-
-    setIsTailing(true);
-    
-    const tailLogs = async () => {
+  const fetchLogs = useCallback(
+    async (serviceId: string) => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await api.services.logs(serviceId);
-        setLogs(prevLogs => {
-          const newLogs = response.data;
-          
-          // Only update if we have new logs or different content
-          if (newLogs.length !== prevLogs.length || 
-              JSON.stringify(newLogs) !== JSON.stringify(prevLogs)) {
-            return newLogs;
-          }
-          return prevLogs;
-        });
-        
-        if (error) {
-          setError(null);
-        }
+        setLogs(response.data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to tail service logs";
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch service logs";
         setError(errorMessage);
-        // Don't show toast for every polling error to avoid spam
+        showToast({ message: errorMessage, severity: "error" });
+      } finally {
+        setLoading(false);
       }
-    };
+    },
+    [showToast]
+  );
 
-    // Initial fetch
-    await tailLogs();
-    
-    // Poll every 2 seconds
-    tailingIntervalRef.current = setInterval(tailLogs, 2000);
-  }, [error]);
+  const startTailing = useCallback(
+    async (serviceId: string) => {
+      if (tailingIntervalRef.current) {
+        clearInterval(tailingIntervalRef.current);
+      }
+
+      setIsTailing(true);
+
+      const tailLogs = async () => {
+        try {
+          const response = await api.services.logs(serviceId);
+          setLogs((prevLogs) => {
+            const newLogs = response.data;
+
+            // Only update if we have new logs or different content
+            if (
+              newLogs.length !== prevLogs.length ||
+              JSON.stringify(newLogs) !== JSON.stringify(prevLogs)
+            ) {
+              return newLogs;
+            }
+            return prevLogs;
+          });
+
+          if (error) {
+            setError(null);
+          }
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Failed to tail service logs";
+          setError(errorMessage);
+          // Don't show toast for every polling error to avoid spam
+        }
+      };
+
+      // Initial fetch
+      await tailLogs();
+
+      // Poll every 2 seconds
+      tailingIntervalRef.current = setInterval(tailLogs, 2000);
+    },
+    [error]
+  );
 
   const stopTailing = useCallback(() => {
     if (tailingIntervalRef.current) {

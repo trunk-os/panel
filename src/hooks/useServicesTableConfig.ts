@@ -19,24 +19,22 @@ export function useServicesTableConfig() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const config: ServicesTableStorageConfig = JSON.parse(stored);
-        
+
         // Validate that stored columns are still valid
-        const validColumns = config.visibleColumns?.filter(col => 
+        const validColumns = config.visibleColumns?.filter((col) =>
           DEFAULT_COLUMN_ORDER.includes(col)
         );
-        const validOrder = config.columnOrder?.filter(col => 
-          DEFAULT_COLUMN_ORDER.includes(col)
-        );
+        const validOrder = config.columnOrder?.filter((col) => DEFAULT_COLUMN_ORDER.includes(col));
 
         if (validColumns?.length > 0) {
           setVisibleColumns(validColumns);
         }
-        
+
         if (validOrder?.length > 0) {
           // Ensure all default columns are in the order, even if not in stored config
           const completeOrder = [
             ...validOrder,
-            ...DEFAULT_COLUMN_ORDER.filter(col => !validOrder.includes(col))
+            ...DEFAULT_COLUMN_ORDER.filter((col) => !validOrder.includes(col)),
           ];
           setColumnOrder(completeOrder);
         }
@@ -48,27 +46,36 @@ export function useServicesTableConfig() {
   }, []);
 
   // Save config to localStorage whenever it changes
-  const saveConfig = useCallback((newVisibleColumns: ServiceColumn[], newColumnOrder: ServiceColumn[]) => {
-    try {
-      const config: ServicesTableStorageConfig = {
-        visibleColumns: newVisibleColumns,
-        columnOrder: newColumnOrder,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch (error) {
-      console.warn("Failed to save services table config to localStorage:", error);
-    }
-  }, []);
+  const saveConfig = useCallback(
+    (newVisibleColumns: ServiceColumn[], newColumnOrder: ServiceColumn[]) => {
+      try {
+        const config: ServicesTableStorageConfig = {
+          visibleColumns: newVisibleColumns,
+          columnOrder: newColumnOrder,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch (error) {
+        console.warn("Failed to save services table config to localStorage:", error);
+      }
+    },
+    []
+  );
 
-  const updateVisibleColumns = useCallback((newColumns: ServiceColumn[]) => {
-    setVisibleColumns(newColumns);
-    saveConfig(newColumns, columnOrder);
-  }, [columnOrder, saveConfig]);
+  const updateVisibleColumns = useCallback(
+    (newColumns: ServiceColumn[]) => {
+      setVisibleColumns(newColumns);
+      saveConfig(newColumns, columnOrder);
+    },
+    [columnOrder, saveConfig]
+  );
 
-  const updateColumnOrder = useCallback((newOrder: ServiceColumn[]) => {
-    setColumnOrder(newOrder);
-    saveConfig(visibleColumns, newOrder);
-  }, [visibleColumns, saveConfig]);
+  const updateColumnOrder = useCallback(
+    (newOrder: ServiceColumn[]) => {
+      setColumnOrder(newOrder);
+      saveConfig(visibleColumns, newOrder);
+    },
+    [visibleColumns, saveConfig]
+  );
 
   const resetToDefaults = useCallback(() => {
     setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);

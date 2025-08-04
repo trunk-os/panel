@@ -23,11 +23,7 @@ interface ConfigurationDialogProps {
   onClose: () => void;
 }
 
-export function ConfigurationDialog({
-  open,
-  package: pkg,
-  onClose,
-}: ConfigurationDialogProps) {
+export function ConfigurationDialog({ open, package: pkg, onClose }: ConfigurationDialogProps) {
   const {
     prompts,
     responses,
@@ -107,9 +103,7 @@ export function ConfigurationDialog({
           </Box>
         ) : prompts.length === 0 ? (
           <Box sx={{ p: 2 }}>
-            <Typography>
-              No configuration required. Click Install to proceed.
-            </Typography>
+            <Typography>No configuration required. Click Install to proceed.</Typography>
           </Box>
         ) : (
           <Box>
@@ -143,19 +137,11 @@ export function ConfigurationDialog({
         )}
 
         {prompts.length === 0 ? (
-          <Button
-            onClick={handleInstall}
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleInstall} variant="contained" disabled={loading}>
             Install
           </Button>
         ) : (
-          <Button
-            onClick={handleNext}
-            variant="contained"
-            disabled={loading || !canProceed}
-          >
+          <Button onClick={handleNext} variant="contained" disabled={loading || !canProceed}>
             {isLastStep ? "Install" : "Next"}
           </Button>
         )}

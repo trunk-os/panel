@@ -25,9 +25,7 @@ export function useConfiguration() {
         setCurrentStep(0);
       } catch (err) {
         const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch configuration prompts";
+          err instanceof Error ? err.message : "Failed to fetch configuration prompts";
         setError(errorMessage);
         showToast({ message: errorMessage, severity: "error" });
       } finally {
@@ -61,20 +59,17 @@ export function useConfiguration() {
     return result;
   }, []);
 
-  const setResponse = useCallback(
-    (template: string, input_type: string, input: string) => {
-      setResponses((prev) => {
-        const existing = prev.findIndex((r) => r.template === template);
-        if (existing >= 0) {
-          const updated = [...prev];
-          updated[existing] = { template, input: { [input_type]: input } };
-          return updated;
-        }
-        return [...prev, { template, input: { [input_type]: input } }];
-      });
-    },
-    []
-  );
+  const setResponse = useCallback((template: string, input_type: string, input: string) => {
+    setResponses((prev) => {
+      const existing = prev.findIndex((r) => r.template === template);
+      if (existing >= 0) {
+        const updated = [...prev];
+        updated[existing] = { template, input: { [input_type]: input } };
+        return updated;
+      }
+      return [...prev, { template, input: { [input_type]: input } }];
+    });
+  }, []);
 
   const nextStep = useCallback(() => {
     if (currentStep < prompts.length - 1) {
@@ -104,8 +99,7 @@ export function useConfiguration() {
           severity: "success",
         });
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to submit configuration";
+        const errorMessage = err instanceof Error ? err.message : "Failed to submit configuration";
         showToast({ message: errorMessage, severity: "error" });
         throw err;
       } finally {
@@ -124,9 +118,7 @@ export function useConfiguration() {
 
   // Computed value for whether we can proceed
   const currentPrompt = prompts[currentStep];
-  const currentResponse = responses.find(
-    (r) => r.template === currentPrompt?.template
-  );
+  const currentResponse = responses.find((r) => r.template === currentPrompt?.template);
   const isResponseValid =
     currentResponse && currentPrompt
       ? validateResponse(currentResponse.input, currentPrompt.input_type)

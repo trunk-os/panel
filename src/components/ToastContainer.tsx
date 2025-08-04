@@ -11,24 +11,29 @@ interface ToastContentProps {
   showDetailsButton?: boolean;
 }
 
-function ToastContent({ message, errorId, onShowDetails, showDetailsButton = true }: ToastContentProps) {
+function ToastContent({
+  message,
+  errorId,
+  onShowDetails,
+  showDetailsButton = true,
+}: ToastContentProps) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-      <Box sx={{ flexGrow: 1, mr: 1 }}>
-        {message}
-      </Box>
+    <Box
+      sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}
+    >
+      <Box sx={{ flexGrow: 1, mr: 1 }}>{message}</Box>
       {errorId && showDetailsButton && (
         <Button
           variant="contained"
           size="small"
           onClick={() => onShowDetails(errorId)}
-          sx={{ 
+          sx={{
             minWidth: "auto",
             bgcolor: "rgba(255, 255, 255, 0.2)",
             color: "inherit",
             "&:hover": {
               bgcolor: "rgba(255, 255, 255, 0.3)",
-            }
+            },
           }}
         >
           Details
@@ -43,7 +48,7 @@ export function ToastContainer() {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [selectedErrorId, setSelectedErrorId] = useState<string | null>(null);
   const location = useLocation();
-  
+
   const isOnLoginPage = location.pathname === "/login";
 
   const handleShowDetails = (errorId: string) => {
@@ -72,8 +77,8 @@ export function ToastContainer() {
             variant="filled"
             sx={{ width: "100%" }}
           >
-            <ToastContent 
-              message={currentToast.message} 
+            <ToastContent
+              message={currentToast.message}
               errorId={currentToast.errorId}
               onShowDetails={handleShowDetails}
               showDetailsButton={!isOnLoginPage}

@@ -42,7 +42,7 @@ export function ColumnReorderDialog({
 
   const handleMoveUp = (index: number) => {
     if (index === 0) return;
-    
+
     const newOrder = [...localOrder];
     [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
     setLocalOrder(newOrder);
@@ -50,7 +50,7 @@ export function ColumnReorderDialog({
 
   const handleMoveDown = (index: number) => {
     if (index === localOrder.length - 1) return;
-    
+
     const newOrder = [...localOrder];
     [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
     setLocalOrder(newOrder);
@@ -70,7 +70,7 @@ export function ColumnReorderDialog({
     setLocalOrder(DEFAULT_COLUMN_ORDER);
   };
 
-  const visibleOrderedColumns = localOrder.filter(col => visibleColumns.includes(col));
+  const visibleOrderedColumns = localOrder.filter((col) => visibleColumns.includes(col));
 
   return (
     <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
@@ -80,21 +80,26 @@ export function ColumnReorderDialog({
           <Typography variant="h6">Reorder Columns</Typography>
         </Box>
       </DialogTitle>
-      
+
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Drag or use arrow buttons to reorder visible columns. The Actions column is always positioned at the far right.
+          Drag or use arrow buttons to reorder visible columns. The Actions column is always
+          positioned at the far right.
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: "block", fontSize: "0.7rem" }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mb: 2, display: "block", fontSize: "0.7rem" }}
+        >
           Your column order will be saved automatically.
         </Typography>
-        
+
         <List sx={{ maxHeight: 400, overflow: "auto" }}>
           {visibleOrderedColumns.map((column, index) => {
             const isActions = column === "actions";
             const isFirst = index === 0;
             const isLast = index === visibleOrderedColumns.length - 1;
-            
+
             return (
               <ListItem
                 key={column}
@@ -159,7 +164,7 @@ export function ColumnReorderDialog({
           })}
         </List>
       </DialogContent>
-      
+
       <DialogActions>
         <Button
           onClick={handleReset}

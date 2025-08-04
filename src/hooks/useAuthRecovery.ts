@@ -5,13 +5,7 @@ import { api } from "@/api/client";
 import { AUTH_ERROR_MESSAGES } from "@/utils/authValidation";
 
 export function useAuthRecovery() {
-  const { 
-    token, 
-    isAuthenticated, 
-    validateToken, 
-    clearToken, 
-    authError 
-  } = useAuthStore();
+  const { token, isAuthenticated, validateToken, clearToken, authError } = useAuthStore();
   const { showToast } = useToastStore();
 
   const handleSessionRecovery = useCallback(async () => {
@@ -19,16 +13,16 @@ export function useAuthRecovery() {
       return;
     }
 
-    console.log('[useAuthRecovery] Attempting session recovery');
+    console.log("[useAuthRecovery] Attempting session recovery");
 
     const validation = await validateToken(api);
-    
+
     if (!validation.isValid) {
-      console.log('[useAuthRecovery] Session recovery failed:', validation);
-      
+      console.log("[useAuthRecovery] Session recovery failed:", validation);
+
       // Clear invalid session data
       clearToken();
-      
+
       // Show appropriate message based on the type of failure
       if (validation.isExpired) {
         showToast({
@@ -36,10 +30,12 @@ export function useAuthRecovery() {
           message: AUTH_ERROR_MESSAGES.EXPIRED_TOKEN,
           autoHideDuration: 5000,
         });
-      } else if (validation.error?.includes("ERR_CONNECTION_REFUSED") ||
-                 validation.error?.includes("ECONNREFUSED") ||
-                 validation.error?.includes("ERR_NETWORK") ||
-                 validation.error?.includes("Failed to fetch")) {
+      } else if (
+        validation.error?.includes("ERR_CONNECTION_REFUSED") ||
+        validation.error?.includes("ECONNREFUSED") ||
+        validation.error?.includes("ERR_NETWORK") ||
+        validation.error?.includes("Failed to fetch")
+      ) {
         showToast({
           severity: "warning",
           message: AUTH_ERROR_MESSAGES.SERVER_RESTART,
@@ -53,7 +49,7 @@ export function useAuthRecovery() {
         });
       }
     } else {
-      console.log('[useAuthRecovery] Session recovery successful');
+      console.log("[useAuthRecovery] Session recovery successful");
     }
   }, [token, isAuthenticated, validateToken, clearToken, showToast]);
 
@@ -65,30 +61,32 @@ export function useAuthRecovery() {
     try {
       // Try to ping the server
       await api.status.ping();
-      
+
       // If ping succeeds but we have auth errors, likely a server restart
       if (authError?.includes("401")) {
-        console.log('[useAuthRecovery] Server restart detected via auth error after successful ping');
+        console.log(
+          "[useAuthRecovery] Server restart detected via auth error after successful ping"
+        );
         return true;
       }
-      
+
       return false;
     } catch (error) {
       // Server is unreachable
-      console.log('[useAuthRecovery] Server unreachable:', error);
+      console.log("[useAuthRecovery] Server unreachable:", error);
       return false;
     }
   }, [token, authError]);
 
   const handleServerRestartRecovery = useCallback(async () => {
     const isServerRestart = await detectServerRestart();
-    
+
     if (isServerRestart) {
-      console.log('[useAuthRecovery] Handling server restart recovery');
-      
+      console.log("[useAuthRecovery] Handling server restart recovery");
+
       // Clear the invalid session
       clearToken();
-      
+
       // Show user-friendly message
       showToast({
         severity: "info",

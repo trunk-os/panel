@@ -5,7 +5,11 @@ import { createSecureStorage } from "./secureStorage";
 import type { api } from "@/api/client";
 import { useSetupStore } from "./setupStore";
 import { ApiError } from "@/api/errors";
-import { validateStoredToken, showAuthErrorMessage, type TokenValidationResult } from "@/utils/authValidation";
+import {
+  validateStoredToken,
+  showAuthErrorMessage,
+  type TokenValidationResult,
+} from "@/utils/authValidation";
 
 type ApiClient = typeof api;
 
@@ -70,12 +74,13 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           console.log("[authStore] Login error:", error);
-          const errorMessage = error instanceof ApiError && error.statusCode === 401
-            ? "Invalid username or password"
-            : error instanceof Error 
-              ? error.message 
-              : "Login failed. Please try again.";
-          
+          const errorMessage =
+            error instanceof ApiError && error.statusCode === 401
+              ? "Invalid username or password"
+              : error instanceof Error
+                ? error.message
+                : "Login failed. Please try again.";
+
           set({
             user: null,
             token: null,
@@ -98,36 +103,36 @@ export const useAuthStore = create<AuthState>()(
       initialize: async (apiClient: ApiClient) => {
         const currentState = get();
         const token = currentState.token;
-        
-        console.log('[authStore] initialize called with:', { 
-          hasToken: !!token, 
+
+        console.log("[authStore] initialize called with:", {
+          hasToken: !!token,
           isLoading: currentState.isLoading,
-          isAuthenticated: currentState.isAuthenticated 
+          isAuthenticated: currentState.isAuthenticated,
         });
-        
+
         if (!token) {
-          console.log('[authStore] No token, setting not authenticated');
+          console.log("[authStore] No token, setting not authenticated");
           set({ isLoading: false, isAuthenticated: false, user: null, authError: null });
           return;
         }
 
-        console.log('[authStore] Starting token validation');
+        console.log("[authStore] Starting token validation");
         set({ isLoading: true, authError: null });
-        
+
         const validation = await get().validateToken(apiClient);
-        
+
         if (validation.isValid) {
           try {
-            console.log('[authStore] Token valid, fetching user data');
+            console.log("[authStore] Token valid, fetching user data");
             const me: UserData = (await apiClient.session.me()).data;
-            console.log('[authStore] Token validation successful, user:', me);
+            console.log("[authStore] Token validation successful, user:", me);
             set({
               user: me,
               isAuthenticated: true,
               isLoading: false,
               authError: null,
             });
-            console.log('[authStore] Auth state updated to authenticated');
+            console.log("[authStore] Auth state updated to authenticated");
           } catch (error) {
             console.log("[authStore] Failed to fetch user data after validation:", error);
             set({
@@ -138,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } else {
           console.log("[authStore] Token validation failed:", validation);
-          
+
           if (validation.isExpired || validation.error?.includes("401")) {
             console.log("[authStore] Clearing expired/invalid token");
             set({

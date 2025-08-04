@@ -70,7 +70,7 @@ export default function ModifyDatasetDialog({
     if (!entry) return;
 
     const modifications: { name: string; quota?: number } = { name: newName || entry.name };
-    
+
     if (quota) {
       const quotaInBytes = calculateSize(`${quota}${quotaUnit}B`);
       modifications.quota = quotaInBytes;

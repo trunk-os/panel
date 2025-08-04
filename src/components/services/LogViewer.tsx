@@ -56,13 +56,16 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
   };
 
   const handleDownload = () => {
-    const content = logs.map(log => 
-      `[${new Date(log.timestamp).toISOString()}] ${log.level.toUpperCase()}: ${log.message}`
-    ).join('\n');
-    
-    const blob = new Blob([content], { type: 'text/plain' });
+    const content = logs
+      .map(
+        (log) =>
+          `[${new Date(log.timestamp).toISOString()}] ${log.level.toUpperCase()}: ${log.message}`
+      )
+      .join("\n");
+
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `service-${serviceId}-logs.txt`;
     document.body.appendChild(a);
@@ -71,10 +74,11 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
     URL.revokeObjectURL(url);
   };
 
-  const filteredLogs = logs.filter(log =>
-    searchTerm === "" || 
-    log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.level.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = logs.filter(
+    (log) =>
+      searchTerm === "" ||
+      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.level.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getLevelColor = (level: string): string => {
@@ -93,11 +97,11 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
   };
 
   const formatTimestamp = (timestamp: string): string => {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
+    return new Date(timestamp).toLocaleTimeString("en-US", {
       hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   };
 
@@ -108,8 +112,8 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="Refresh logs">
           <span>
-            <IconButton 
-              onClick={handleRefresh} 
+            <IconButton
+              onClick={handleRefresh}
               disabled={loading}
               size="small"
               sx={{
@@ -125,8 +129,8 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
         </Tooltip>
         <Tooltip title="Download logs">
           <span>
-            <IconButton 
-              onClick={handleDownload} 
+            <IconButton
+              onClick={handleDownload}
               disabled={logs.length === 0}
               size="small"
               sx={{
@@ -141,7 +145,7 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
           </span>
         </Tooltip>
         <Tooltip title="Close">
-          <IconButton 
+          <IconButton
             onClick={onClose}
             size="small"
             sx={{
@@ -155,7 +159,7 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
           </IconButton>
         </Tooltip>
       </DialogTitle>
-      
+
       <DialogContent sx={{ p: 0 }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
@@ -174,7 +178,7 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
               sx={{ flexGrow: 1 }}
             />
           </Box>
-          
+
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Typography variant="body2" sx={{ minWidth: 80 }}>
               Log count: {logCount}
@@ -190,10 +194,10 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
             />
           </Box>
         </Box>
-        
-        <Box 
-          sx={{ 
-            height: 500, 
+
+        <Box
+          sx={{
+            height: 500,
             overflow: "auto",
             bgcolor: "#1a1a1a",
             color: "#ffffff",
@@ -204,11 +208,25 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
           }}
         >
           {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
               <CircularProgress size={24} sx={{ color: "#ffffff" }} />
             </Box>
           ) : filteredLogs.length === 0 ? (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
               <Typography sx={{ color: "#6b7280" }}>
                 {searchTerm ? "No logs match your search" : "No logs available"}
               </Typography>
@@ -264,9 +282,9 @@ export function LogViewer({ open, serviceId, onClose }: LogViewerProps) {
           )}
         </Box>
       </DialogContent>
-      
+
       <DialogActions>
-        <Button 
+        <Button
           onClick={onClose}
           sx={{
             "&:hover": {

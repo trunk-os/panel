@@ -92,9 +92,7 @@ export default function ZFSPage() {
   };
 
   const filteredEntries =
-    allEntries?.filter((entry) =>
-      entry.name.toLowerCase().includes(filter.toLowerCase())
-    ) || [];
+    allEntries?.filter((entry) => entry.name.toLowerCase().includes(filter.toLowerCase())) || [];
 
   const handleCreateDataset = async (name: string, quota?: number) => {
     setIsCreatingDataset(true);

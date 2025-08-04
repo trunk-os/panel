@@ -1,13 +1,6 @@
 import { useState, useCallback } from "react";
-import {
-  TextField,
-  InputAdornment,
-  IconButton,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  Clear as ClearIcon,
-} from "@mui/icons-material";
+import { TextField, InputAdornment, IconButton } from "@mui/material";
+import { Search as SearchIcon, Clear as ClearIcon } from "@mui/icons-material";
 
 interface PackageSearchProps {
   onSearch: (query: string) => void;

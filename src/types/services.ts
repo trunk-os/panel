@@ -53,7 +53,6 @@ export interface Package {
   category?: string;
 }
 
-
 export interface Prompt {
   template: string;
   question: string;

@@ -74,15 +74,15 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
   if (collapsed) {
     return (
       <Card sx={{ transition: "all 0.3s ease" }}>
-        <CardContent sx={{ 
-          padding: "8px 16px !important", 
-          display: "flex", 
-          alignItems: "center",
-          gap: 2
-        }}>
-          <Typography variant="subtitle1">
-            Infrastructure
-          </Typography>
+        <CardContent
+          sx={{
+            padding: "8px 16px !important",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Typography variant="subtitle1">Infrastructure</Typography>
           {isLoading ? (
             <Box sx={{ width: 80 }}>
               <LinearProgress color="primary" />
@@ -115,16 +115,18 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
           </Box>
         ) : (
           <Box sx={{ display: "flex", flexGrow: 1, gap: 2 }}>
-            <Box sx={{ 
-              flex: 1, 
-              display: "flex", 
-              flexDirection: "column", 
-              alignItems: "center", 
-              justifyContent: "center",
-              pr: 2,
-              borderRight: 1,
-              borderColor: "divider"
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                pr: 2,
+                borderRight: 1,
+                borderColor: "divider",
+              }}
+            >
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
                 Virtual Machines
               </Typography>
@@ -141,14 +143,16 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
               )}
             </Box>
 
-            <Box sx={{ 
-              flex: 1, 
-              display: "flex", 
-              flexDirection: "column", 
-              alignItems: "center", 
-              justifyContent: "center",
-              pl: 2
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                pl: 2,
+              }}
+            >
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
                 Archive Storage
               </Typography>
@@ -158,7 +162,7 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
               <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
                 Storage Used
               </Typography>
-              
+
               {usedSpace && totalSpace && (
                 <>
                   <Typography variant="caption" color="text.secondary" textAlign="center">
@@ -168,7 +172,13 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
                     <LinearProgress
                       variant="determinate"
                       value={usagePercent || 0}
-                      color={usagePercent && usagePercent > 90 ? "error" : usagePercent && usagePercent > 70 ? "warning" : "primary"}
+                      color={
+                        usagePercent && usagePercent > 90
+                          ? "error"
+                          : usagePercent && usagePercent > 70
+                            ? "warning"
+                            : "primary"
+                      }
                       sx={{ height: 4, borderRadius: 2 }}
                     />
                   </Box>

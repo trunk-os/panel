@@ -53,15 +53,23 @@ export const useApiStatusStore = create<ApiStatusState>((set, get) => ({
         console.log("[checkApiStatus] ", result.data.info);
         const systemStatus = result.data.info as SystemStatus;
         const healthStatus = result.data.health;
-        
+
         // Update metric history
         const currentState = get();
         const cpuUsage = Math.round(systemStatus.cpu_usage);
-        const memoryUsage = Math.round(((systemStatus.total_memory - systemStatus.available_memory) / systemStatus.total_memory) * 100);
-        
-        const newCpuHistory = [...currentState.metricHistory.cpuHistory, cpuUsage].slice(-MAX_HISTORY_POINTS);
-        const newMemoryHistory = [...currentState.metricHistory.memoryHistory, memoryUsage].slice(-MAX_HISTORY_POINTS);
-        
+        const memoryUsage = Math.round(
+          ((systemStatus.total_memory - systemStatus.available_memory) /
+            systemStatus.total_memory) *
+            100
+        );
+
+        const newCpuHistory = [...currentState.metricHistory.cpuHistory, cpuUsage].slice(
+          -MAX_HISTORY_POINTS
+        );
+        const newMemoryHistory = [...currentState.metricHistory.memoryHistory, memoryUsage].slice(
+          -MAX_HISTORY_POINTS
+        );
+
         set({
           status: "ok",
           lastChecked: new Date(),

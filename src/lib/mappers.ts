@@ -7,11 +7,16 @@
  */
 export function mapRuntimeStateToActiveState(runtimeState: string): string {
   switch (runtimeState) {
-    case "Started": return "active";
-    case "Stopped": return "inactive";
-    case "Restarted": return "active";
-    case "Reloaded": return "active";
-    default: return "inactive";
+    case "Started":
+      return "active";
+    case "Stopped":
+      return "inactive";
+    case "Restarted":
+      return "active";
+    case "Reloaded":
+      return "active";
+    default:
+      return "inactive";
   }
 }
 
@@ -20,10 +25,14 @@ export function mapRuntimeStateToActiveState(runtimeState: string): string {
  */
 export function mapEnabledStateToLoadState(enabledState: string): string {
   switch (enabledState) {
-    case "Enabled": return "enabled";
-    case "Disabled": return "disabled";
-    case "Failed": return "failed";
-    default: return "disabled";
+    case "Enabled":
+      return "enabled";
+    case "Disabled":
+      return "disabled";
+    case "Failed":
+      return "failed";
+    default:
+      return "disabled";
   }
 }
 
@@ -32,16 +41,26 @@ export function mapEnabledStateToLoadState(enabledState: string): string {
  */
 export function mapLastRunStateToSubState(lastRunState: string): string {
   switch (lastRunState) {
-    case "Failed": return "failed";
-    case "Dead": return "dead";
-    case "Mounted": return "mounted";
-    case "Running": return "running";
-    case "Listening": return "listening";
-    case "Plugged": return "plugged";
-    case "Exited": return "exited";
-    case "Active": return "running";  // Active services should be considered "running"
-    case "Waiting": return "waiting";
-    default: return "dead";
+    case "Failed":
+      return "failed";
+    case "Dead":
+      return "dead";
+    case "Mounted":
+      return "mounted";
+    case "Running":
+      return "running";
+    case "Listening":
+      return "listening";
+    case "Plugged":
+      return "plugged";
+    case "Exited":
+      return "exited";
+    case "Active":
+      return "running"; // Active services should be considered "running"
+    case "Waiting":
+      return "waiting";
+    default:
+      return "dead";
   }
 }
 
@@ -49,7 +68,7 @@ export function mapLastRunStateToSubState(lastRunState: string): string {
  * Maps systemd states to service status for UI representation
  */
 export function mapSystemdStateToServiceStatus(
-  activeState: string, 
+  activeState: string,
   subState: string
 ): "running" | "stopped" | "error" | "installing" | "configuring" {
   switch (activeState) {
@@ -80,7 +99,7 @@ export function extractPackageNameFromUnit(unitName: string): string {
  */
 export function mapPriorityToLevel(priority?: number): "info" | "warn" | "error" | "debug" {
   if (!priority) return "info";
-  
+
   // Systemd journal priorities (RFC 3164)
   // 0-2: error, 3: error, 4: warn, 5-6: info, 7: debug
   if (priority <= 3) return "error";

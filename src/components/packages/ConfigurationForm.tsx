@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Typography,
-  Alert,
-} from "@mui/material";
+import { Box, TextField, FormControlLabel, Switch, Typography, Alert } from "@mui/material";
 import type { Prompt, PromptResponse } from "@/types/services";
 
 interface ConfigurationFormProps {
@@ -29,9 +22,7 @@ export function ConfigurationForm({
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
 
-  const existingResponse = responses.find(
-    (r) => r.template === prompt.template
-  );
+  const existingResponse = responses.find((r) => r.template === prompt.template);
 
   useEffect(() => {
     if (existingResponse) {
@@ -63,10 +54,7 @@ export function ConfigurationForm({
     // around, but whatever.
 
     if (existingResponse) {
-      const isValid = validateResponse(
-        existingResponse.input,
-        prompt.input_type
-      );
+      const isValid = validateResponse(existingResponse.input, prompt.input_type);
 
       // Show validation error if value is invalid and not empty
       if (!isValid) {
@@ -132,9 +120,7 @@ export function ConfigurationForm({
               control={
                 <Switch
                   checked={value === "true"}
-                  onChange={(e) =>
-                    handleValueChange(e.target.checked ? "true" : "false")
-                  }
+                  onChange={(e) => handleValueChange(e.target.checked ? "true" : "false")}
                 />
               }
               label={prompt.question}
@@ -148,11 +134,7 @@ export function ConfigurationForm({
         );
 
       default:
-        return (
-          <Alert severity="error">
-            Unsupported input type: {prompt.input_type}
-          </Alert>
-        );
+        return <Alert severity="error">Unsupported input type: {prompt.input_type}</Alert>;
     }
   };
 

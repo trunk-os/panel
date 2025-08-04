@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -7,20 +7,19 @@ import {
   CardContent,
   Alert,
   TextField,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   CircularProgress,
+  LinearProgress,
+  Chip,
 } from "@mui/material";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import type { UserCreateRequest } from "@/api/types";
+import { useSetupStore, type SetupUser } from "@/store/setupStore";
+import { UserConfigurationCard } from "./UserConfigurationCard";
 
 interface UserCreationStepProps {
   onNext: () => void;
@@ -40,16 +39,18 @@ function isValidPassword(password: string): boolean {
   return password.length >= 8;
 }
 
-function CreateAdditionalUserDialog({
+function CreateUserDialog({
   open,
   onClose,
   onSubmit,
   isLoading,
+  existingUsernames,
 }: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (user: UserCreateRequest) => void;
+  onSubmit: (user: Omit<SetupUser, "id">) => void;
   isLoading: boolean;
+  existingUsernames: string[];
 }) {
   const [username, setUsername] = useState("");
   const [realname, setRealname] = useState("");
@@ -57,119 +58,55 @@ function CreateAdditionalUserDialog({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateUsername = (value: string) => {
-    if (!value) {
-      setUsernameError("Username is required");
-      return;
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!username) {
+      newErrors.username = "Username is required";
+    } else if (!isValidUsername(username)) {
+      newErrors.username = "Username must be 3-32 characters, alphanumeric, underscore, hyphen";
+    } else if (existingUsernames.includes(username.toLowerCase())) {
+      newErrors.username = "Username already exists";
     }
 
-    if (!isValidUsername(value)) {
-      setUsernameError(
-        "Username must be 3-32 characters and contain only letters, numbers, underscores, or hyphens"
-      );
-    } else {
-      setUsernameError("");
-    }
-  };
-
-  const validateEmail = (value: string) => {
-    if (!value) {
-      setEmailError("");
-      return;
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (!isValidPassword(password)) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
-    if (!isValidEmail(value)) {
-      setEmailError("Please enter a valid email address");
-    } else {
-      setEmailError("");
-    }
-  };
-
-  const validatePassword = (value: string) => {
-    if (!value) {
-      setPasswordError("Password is required");
-      return;
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (!isValidPassword(value)) {
-      setPasswordError("Password must be at least 8 characters");
-    } else {
-      setPasswordError("");
-    }
-  };
-
-  const validatePasswordMatch = (pass: string, confirm: string) => {
-    if (!confirm) {
-      setConfirmPasswordError("Please confirm your password");
-      return;
+    if (email && !isValidEmail(email)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
-    if (pass !== confirm) {
-      setConfirmPasswordError("Passwords do not match");
-    } else {
-      setConfirmPasswordError("");
-    }
-  };
-
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUsername(value);
-    validateUsername(value);
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setEmail(value);
-    validateEmail(value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setPassword(value);
-    validatePassword(value);
-    if (confirmPassword) {
-      validatePasswordMatch(value, confirmPassword);
-    }
-  };
-
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    validatePasswordMatch(password, value);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
-    validateUsername(username);
-    validatePassword(password);
-    validatePasswordMatch(password, confirmPassword);
-    if (email) validateEmail(email);
-
-    if (
-      usernameError ||
-      passwordError ||
-      confirmPasswordError ||
-      emailError ||
-      !username ||
-      !password ||
-      !confirmPassword
-    ) {
+    if (!validateForm()) {
       return;
     }
 
-    const newUser: UserCreateRequest = {
+    const newUser: Omit<SetupUser, "id"> = {
       username,
       password,
       realname: realname || null,
       email: email || null,
       phone: phone || null,
+      role: "user",
     };
 
     onSubmit(newUser);
+    handleClose();
   };
 
   const handleClose = () => {
@@ -179,97 +116,75 @@ function CreateAdditionalUserDialog({
     setPhone("");
     setPassword("");
     setConfirmPassword("");
-    setUsernameError("");
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
+    setErrors({});
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create Additional User</DialogTitle>
+      <DialogTitle>Add New User</DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>
-          Create an additional user account for your team.
+          Create a new user account that will be added during setup.
         </DialogContentText>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="username"
-          label="Username"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={username}
-          onChange={handleUsernameChange}
-          error={!!usernameError}
-          helperText={usernameError || "3-32 characters, alphanumeric, underscore, hyphen"}
-          sx={{ mb: 2 }}
-          required
-        />
-        <TextField
-          margin="dense"
-          id="password"
-          label="Password"
-          type="password"
-          fullWidth
-          variant="outlined"
-          value={password}
-          onChange={handlePasswordChange}
-          error={!!passwordError}
-          helperText={passwordError || "At least 8 characters"}
-          sx={{ mb: 2 }}
-          required
-        />
-        <TextField
-          margin="dense"
-          id="confirm-password"
-          label="Confirm Password"
-          type="password"
-          fullWidth
-          variant="outlined"
-          value={confirmPassword}
-          onChange={handleConfirmPasswordChange}
-          error={!!confirmPasswordError}
-          helperText={confirmPasswordError || "Re-enter your password"}
-          sx={{ mb: 2 }}
-          required
-        />
-        <TextField
-          margin="dense"
-          id="realname"
-          label="Real Name"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={realname}
-          onChange={(e) => setRealname(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          margin="dense"
-          id="email"
-          label="Email"
-          type="email"
-          fullWidth
-          variant="outlined"
-          value={email}
-          onChange={handleEmailChange}
-          error={!!emailError}
-          helperText={emailError}
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          margin="dense"
-          id="phone"
-          label="Phone"
-          type="tel"
-          fullWidth
-          variant="outlined"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+
+        <Box sx={{ display: "grid", gap: 2, mt: 2 }}>
+          <TextField
+            autoFocus
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onBlur={validateForm}
+            error={!!errors.username}
+            helperText={errors.username || "3-32 characters, alphanumeric, underscore, hyphen"}
+            required
+          />
+
+          <TextField
+            label="Real Name"
+            value={realname}
+            onChange={(e) => setRealname(e.target.value)}
+          />
+
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onBlur={validateForm}
+            error={!!errors.password}
+            helperText={errors.password || "At least 8 characters"}
+            required
+          />
+
+          <TextField
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={validateForm}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
+            required
+          />
+
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={validateForm}
+            error={!!errors.email}
+            helperText={errors.email}
+          />
+
+          <TextField
+            label="Phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isLoading}>
@@ -280,44 +195,145 @@ function CreateAdditionalUserDialog({
           variant="contained"
           disabled={
             isLoading ||
+            Object.keys(errors).length > 0 ||
             !username ||
             !password ||
-            !confirmPassword ||
-            !!usernameError ||
-            !!passwordError ||
-            !!confirmPasswordError ||
-            !!emailError
+            !confirmPassword
           }
         >
-          {isLoading ? <CircularProgress size={24} /> : "Create User"}
+          {isLoading ? <CircularProgress size={24} /> : "Add User"}
         </Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-export function UserCreationStep({ onNext, onBack, isLastStep }: UserCreationStepProps) {
-  const [createdUsers, setCreatedUsers] = useState<string[]>([]);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface BatchProgressDialogProps {
+  open: boolean;
+  progress: { current: number; total: number; currentItem: string };
+  onClose: () => void;
+}
 
-  const handleCreateUser = async (user: UserCreateRequest) => {
-    setIsCreating(true);
+function BatchProgressDialog({ open, progress, onClose }: BatchProgressDialogProps) {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth disableEscapeKeyDown>
+      <DialogTitle>Creating Users</DialogTitle>
+      <DialogContent>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Creating user {progress.current} of {progress.total}: {progress.currentItem}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={(progress.current / progress.total) * 100}
+            sx={{ mb: 1 }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            {Math.round((progress.current / progress.total) * 100)}% complete
+          </Typography>
+        </Box>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function UserCreationStep({ onNext, onBack, isLastStep }: UserCreationStepProps) {
+  const {
+    pendingUsers,
+    addPendingUser,
+    updatePendingUser,
+    removePendingUser,
+    setUserValidation,
+    getValidationSummary,
+  } = useSetupStore();
+
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [isCreatingBatch, setIsCreatingBatch] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentItem: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [, setCreatedUsers] = useState<string[]>([]);
+
+  const validationSummary = getValidationSummary();
+  const existingUsernames = pendingUsers.map((u) => u.username.toLowerCase());
+
+  const handleAddUser = (user: Omit<SetupUser, "id">) => {
+    addPendingUser(user);
+  };
+
+  const handleEditUser = (user: SetupUser) => {
+    updatePendingUser(user.id, user);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    removePendingUser(userId);
+  };
+
+  const handleUserValidation = (userId: string, isValid: boolean, errors: string[]) => {
+    setUserValidation(userId, isValid ? [] : errors);
+  };
+
+  const [usersCreated, setUsersCreated] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const createButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSubmitUsers = async () => {
+    if (pendingUsers.length === 0) {
+      setUsersCreated(true);
+      return;
+    }
+
+    setIsCreatingBatch(true);
     setError(null);
+    const results: string[] = [];
+
     try {
-      await api.users.create(user);
-      setCreatedUsers(prev => [...prev, user.username]);
-      setShowCreateDialog(false);
-    } catch (error) {
-      console.error("Failed to create user:", error);
-      if (error instanceof ApiError) {
-        setError(error.message);
-      } else {
-        setError("Failed to create user");
+      for (let i = 0; i < pendingUsers.length; i++) {
+        const user = pendingUsers[i];
+        setBatchProgress({
+          current: i + 1,
+          total: pendingUsers.length,
+          currentItem: user.username,
+        });
+
+        try {
+          await api.users.create({
+            username: user.username,
+            password: user.password,
+            realname: user.realname,
+            email: user.email,
+            phone: user.phone,
+          });
+          results.push(user.username);
+        } catch (userError) {
+          console.error(`Failed to create user ${user.username}:`, userError);
+          if (userError instanceof ApiError) {
+            throw new Error(`Failed to create user ${user.username}: ${userError.message}`);
+          }
+          throw new Error(`Failed to create user ${user.username}`);
+        }
       }
+
+      setCreatedUsers(results);
+      setUsersCreated(true);
+    } catch (batchError) {
+      console.error("Batch user creation failed:", batchError);
+      setError(batchError instanceof Error ? batchError.message : "Failed to create users");
     } finally {
-      setIsCreating(false);
+      setIsCreatingBatch(false);
+      setBatchProgress({ current: 0, total: 0, currentItem: "" });
+    }
+  };
+
+  const handleNext = () => {
+    onNext();
+  };
+
+  const hasPendingItems = pendingUsers.length > 0 && !usersCreated;
+
+  const handleContinueHover = () => {
+    if (hasPendingItems && createButtonRef.current) {
+      setIsFlashing(true);
+      setTimeout(() => setIsFlashing(false), 1000);
     }
   };
 
@@ -327,7 +343,8 @@ export function UserCreationStep({ onNext, onBack, isLastStep }: UserCreationSte
         User Management
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Create additional user accounts for your team. You can always add more users later.
+        Create user accounts for your team members. All users will be created when you proceed to
+        the next step.
       </Typography>
 
       {error && (
@@ -336,72 +353,147 @@ export function UserCreationStep({ onNext, onBack, isLastStep }: UserCreationSte
         </Alert>
       )}
 
+      {validationSummary.userErrors > 0 && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          {validationSummary.userErrors} validation error(s) need to be fixed before proceeding.
+        </Alert>
+      )}
+
+      {/* Users List */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Created Users
-          </Typography>
-          {createdUsers.length > 0 ? (
-            <List>
-              {createdUsers.map((username) => (
-                <ListItem key={username}>
-                  <ListItemIcon>
-                    <span className="material-symbols-outlined">person</span>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={username}
-                    secondary="User account created successfully"
-                  />
-                </ListItem>
+          <Box
+            sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}
+          >
+            <Typography variant="h6">Pending Users</Typography>
+            <Chip
+              label={`${pendingUsers.length} user${pendingUsers.length !== 1 ? "s" : ""}`}
+              color={
+                validationSummary.userErrors > 0
+                  ? "error"
+                  : pendingUsers.length > 0
+                    ? "success"
+                    : "default"
+              }
+              size="small"
+            />
+          </Box>
+
+          {pendingUsers.length > 0 ? (
+            <Box>
+              {pendingUsers.map((user) => (
+                <UserConfigurationCard
+                  key={user.id}
+                  user={user}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onValidationChange={handleUserValidation}
+                />
               ))}
-            </List>
+            </Box>
           ) : (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              No additional users created yet. You can add team members now or later from the User Management page.
+            <Alert severity="info">
+              No users configured yet. You can add team members now or later from the User
+              Management page.
             </Alert>
           )}
         </CardContent>
       </Card>
 
+      {/* Add User Button */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Add Team Members
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Create user accounts for your team members to give them access to the system.
+            Create user accounts for team members to give them access to the system.
           </Typography>
           <Button
             variant="outlined"
             onClick={() => setShowCreateDialog(true)}
             startIcon={<span className="material-symbols-outlined">person_add</span>}
+            disabled={isCreatingBatch || usersCreated}
           >
             Add User
           </Button>
         </CardContent>
       </Card>
 
+      {/* Submit Users */}
+      {pendingUsers.length > 0 && !usersCreated && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Create Users
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Submit your user configuration to create {pendingUsers.length} user account
+              {pendingUsers.length !== 1 ? "s" : ""}.
+            </Typography>
+            <Button
+              ref={createButtonRef}
+              variant="contained"
+              onClick={handleSubmitUsers}
+              disabled={validationSummary.userErrors > 0 || isCreatingBatch}
+              startIcon={<span className="material-symbols-outlined">group_add</span>}
+              sx={{
+                animation: isFlashing ? "flash 0.5s ease-in-out 2" : "none",
+                "@keyframes flash": {
+                  "0%, 100%": { transform: "scale(1)" },
+                  "50%": { transform: "scale(1.05)" },
+                },
+              }}
+            >
+              {isCreatingBatch ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={20} color="inherit" />
+                  Creating Users...
+                </Box>
+              ) : (
+                `Create ${pendingUsers.length} User${pendingUsers.length !== 1 ? "s" : ""}`
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {usersCreated && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {pendingUsers.length > 0
+            ? `${pendingUsers.length} user${pendingUsers.length !== 1 ? "s" : ""} created successfully.`
+            : "User creation step completed."}{" "}
+          You can now proceed to the next step.
+        </Alert>
+      )}
+
+      {/* Navigation */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
         {onBack && (
-          <Button onClick={onBack}>
+          <Button onClick={onBack} disabled={isCreatingBatch}>
             Back
           </Button>
         )}
         <Button
           variant="contained"
-          onClick={onNext}
+          onClick={handleNext}
+          onMouseEnter={handleContinueHover}
+          disabled={isCreatingBatch || hasPendingItems}
           sx={{ ml: "auto" }}
         >
-          {isLastStep ? "Complete Setup" : "Next"}
+          {isLastStep ? "Complete Setup" : "Next: Summary"}
         </Button>
       </Box>
 
-      <CreateAdditionalUserDialog
+      <CreateUserDialog
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
-        onSubmit={handleCreateUser}
-        isLoading={isCreating}
+        onSubmit={handleAddUser}
+        isLoading={false}
+        existingUsernames={existingUsernames}
       />
+
+      <BatchProgressDialog open={isCreatingBatch} progress={batchProgress} onClose={() => {}} />
     </Box>
   );
 }

@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { StorageSetupStep } from "./setup/StorageSetupStep";
 import { UserCreationStep } from "./setup/UserCreationStep";
+import { ConfigurationSummary } from "./setup/ConfigurationSummary";
 import { useSetupStore } from "@/store/setupStore";
 
 interface SetupStepProps {
@@ -25,7 +26,7 @@ interface SetupStepProps {
   isLastStep?: boolean;
 }
 
-const steps = ["Disk Configuration", "User Management"];
+const steps = ["Storage Configuration", "User Management", "Summary"];
 
 export default function FirstTimeSetup() {
   const navigate = useNavigate();
@@ -94,6 +95,8 @@ export default function FirstTimeSetup() {
         return <StorageSetupStep {...stepProps} />;
       case 1:
         return <UserCreationStep {...stepProps} />;
+      case 2:
+        return <ConfigurationSummary {...stepProps} />;
       default:
         return <div>Unknown step</div>;
     }

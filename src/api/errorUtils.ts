@@ -27,7 +27,7 @@ export function isProblemDetails(error: unknown): error is ProblemDetails {
   if (typeof error !== "object" || error === null) {
     return false;
   }
-  
+
   const obj = error as Record<string, unknown>;
   return (
     typeof obj.type === "string" ||
@@ -60,7 +60,7 @@ export function showErrorToast(error: unknown, skipToast = false): string | null
 
   if (isProblemDetails(error)) {
     const errorId = generateErrorId();
-    
+
     storedError = {
       id: errorId,
       timestamp: Date.now(),
@@ -72,7 +72,7 @@ export function showErrorToast(error: unknown, skipToast = false): string | null
     };
   } else if (error instanceof Error) {
     const errorId = generateErrorId();
-    
+
     storedError = {
       id: errorId,
       timestamp: Date.now(),
@@ -84,7 +84,7 @@ export function showErrorToast(error: unknown, skipToast = false): string | null
 
   if (storedError) {
     storeError(storedError);
-    
+
     if (!skipToast) {
       showToast({
         message: title,
@@ -93,7 +93,7 @@ export function showErrorToast(error: unknown, skipToast = false): string | null
         errorId: storedError.id,
       });
     }
-    
+
     return storedError.id;
   }
 

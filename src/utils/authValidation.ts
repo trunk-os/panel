@@ -24,53 +24,53 @@ export async function validateStoredToken(
   apiClient: ApiClient
 ): Promise<TokenValidationResult> {
   if (!token) {
-    return { 
-      isValid: false, 
-      isExpired: false, 
-      needsRefresh: false 
+    return {
+      isValid: false,
+      isExpired: false,
+      needsRefresh: false,
     };
   }
 
   try {
     await apiClient.session.me();
-    return { 
-      isValid: true, 
-      isExpired: false, 
-      needsRefresh: false 
+    return {
+      isValid: true,
+      isExpired: false,
+      needsRefresh: false,
     };
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.statusCode === 401) {
-        return { 
-          isValid: false, 
-          isExpired: true, 
-          needsRefresh: false 
+        return {
+          isValid: false,
+          isExpired: true,
+          needsRefresh: false,
         };
       }
-      
+
       if (error.statusCode === 403) {
-        return { 
-          isValid: false, 
-          isExpired: false, 
+        return {
+          isValid: false,
+          isExpired: false,
           needsRefresh: false,
-          error: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS
+          error: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
         };
       }
     }
-    
+
     // Network or server errors
-    return { 
-      isValid: false, 
-      isExpired: false, 
-      needsRefresh: false, 
-      error: error instanceof Error ? error.message : AUTH_ERROR_MESSAGES.UNKNOWN_ERROR
+    return {
+      isValid: false,
+      isExpired: false,
+      needsRefresh: false,
+      error: error instanceof Error ? error.message : AUTH_ERROR_MESSAGES.UNKNOWN_ERROR,
     };
   }
 }
 
 export function showAuthErrorMessage(validation: TokenValidationResult): void {
   const { showToast } = useToastStore.getState();
-  
+
   if (validation.isExpired) {
     showToast({
       severity: "info",
@@ -78,13 +78,14 @@ export function showAuthErrorMessage(validation: TokenValidationResult): void {
       autoHideDuration: 5000,
     });
   } else if (validation.error) {
-    const message = validation.error.includes("ERR_CONNECTION_REFUSED") ||
-                   validation.error.includes("ECONNREFUSED") ||
-                   validation.error.includes("ERR_NETWORK") ||
-                   validation.error.includes("Failed to fetch")
-                     ? AUTH_ERROR_MESSAGES.NETWORK_ERROR
-                     : validation.error;
-                     
+    const message =
+      validation.error.includes("ERR_CONNECTION_REFUSED") ||
+      validation.error.includes("ECONNREFUSED") ||
+      validation.error.includes("ERR_NETWORK") ||
+      validation.error.includes("Failed to fetch")
+        ? AUTH_ERROR_MESSAGES.NETWORK_ERROR
+        : validation.error;
+
     showToast({
       severity: "error",
       message,

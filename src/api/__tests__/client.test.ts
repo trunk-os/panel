@@ -229,11 +229,13 @@ describe("API Client", () => {
       });
 
       const errorData = { status: 401, message: "Token expired" };
-      const mockFetch = mock(() => 
-        Promise.resolve(new Response(JSON.stringify(errorData), { 
-          status: 401,
-          headers: { "Content-Type": "application/json" }
-        }))
+      const mockFetch = mock(() =>
+        Promise.resolve(
+          new Response(JSON.stringify(errorData), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          })
+        )
       );
       globalThis.fetch = mockFetch;
 
@@ -246,7 +248,6 @@ describe("API Client", () => {
       expect(clearTokenSpy).toHaveBeenCalled();
     });
   });
-
 
   describe("API convenience methods", () => {
     test("api.status.ping should return status", async () => {
@@ -605,10 +606,12 @@ describe("API Client", () => {
       const tokenResponse = { token: "test-jwt-token" };
       const mockFetch = mock(() => {
         const responseBody = cbor.encode(tokenResponse);
-        return Promise.resolve(new Response(responseBody, {
-          status: 200,
-          headers: { "Content-Type": "application/cbor" }
-        }));
+        return Promise.resolve(
+          new Response(responseBody, {
+            status: 200,
+            headers: { "Content-Type": "application/cbor" },
+          })
+        );
       });
       globalThis.fetch = mockFetch;
 

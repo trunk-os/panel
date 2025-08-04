@@ -12,10 +12,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { 
-  ViewColumn as ViewColumnIcon,
-  Reorder as ReorderIcon,
-} from "@mui/icons-material";
+import { ViewColumn as ViewColumnIcon, Reorder as ReorderIcon } from "@mui/icons-material";
 import type { ServiceColumn } from "./types";
 import { ALL_AVAILABLE_COLUMNS, COLUMN_LABELS } from "./types";
 import { ColumnReorderDialog } from "./ColumnReorderDialog";
@@ -28,11 +25,11 @@ interface ColumnSelectorProps {
   onColumnOrderChange: (order: ServiceColumn[]) => void;
 }
 
-export function ColumnSelector({ 
-  visibleColumns, 
-  columnOrder, 
-  onColumnsChange, 
-  onColumnOrderChange 
+export function ColumnSelector({
+  visibleColumns,
+  columnOrder,
+  onColumnsChange,
+  onColumnOrderChange,
 }: ColumnSelectorProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [reorderDialogOpen, setReorderDialogOpen] = useState(false);
@@ -49,9 +46,9 @@ export function ColumnSelector({
 
   const handleColumnToggle = (column: ServiceColumn) => {
     const newColumns = visibleColumns.includes(column)
-      ? visibleColumns.filter(col => col !== column)
+      ? visibleColumns.filter((col) => col !== column)
       : [...visibleColumns, column];
-    
+
     onColumnsChange(newColumns);
   };
 
@@ -83,13 +80,13 @@ export function ColumnSelector({
           <ViewColumnIcon />
         </IconButton>
       </Tooltip>
-      
+
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         PaperProps={{
-          sx: { minWidth: 220 }
+          sx: { minWidth: 220 },
         }}
       >
         <Box sx={{ px: 2, py: 1 }}>
@@ -101,7 +98,7 @@ export function ColumnSelector({
           </Typography>
         </Box>
         <Divider />
-        
+
         {ALL_AVAILABLE_COLUMNS.map((column) => (
           <MenuItem
             key={column}
@@ -130,7 +127,7 @@ export function ColumnSelector({
             />
           </MenuItem>
         ))}
-        
+
         <Divider />
         <MenuItem
           onClick={handleReorderClick}
@@ -147,7 +144,7 @@ export function ColumnSelector({
             <Typography variant="body2">Reorder columns</Typography>
           </ListItemText>
         </MenuItem>
-        
+
         <MenuItem
           onClick={handleReset}
           sx={{

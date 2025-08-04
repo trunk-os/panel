@@ -54,7 +54,6 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 
 const toolbarHeight = 64;
 
-
 export default function Layout() {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -80,7 +79,6 @@ export default function Layout() {
     handleUserMenuClose();
     logout();
   };
-
 
   return (
     <Box
@@ -135,7 +133,6 @@ export default function Layout() {
                   Trunk Admin
                 </Typography>
               </Grid>
-
             </Grid>
 
             <Grid item xs={2} container justifyContent="flex-end" gap={1}>

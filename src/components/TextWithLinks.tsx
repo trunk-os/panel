@@ -11,13 +11,13 @@ interface TextWithLinksProps {
   component?: React.ElementType;
 }
 
-export function TextWithLinks({ 
-  text, 
-  variant = "body2", 
-  fontFamily, 
-  sx, 
+export function TextWithLinks({
+  text,
+  variant = "body2",
+  fontFamily,
+  sx,
   color,
-  component 
+  component,
 }: TextWithLinksProps) {
   const parts = parseLinks(text);
 

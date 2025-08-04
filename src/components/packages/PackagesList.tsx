@@ -45,10 +45,10 @@ export function PackagesList({ packages, loading, onInstall }: PackagesListProps
     <Grid container spacing={3}>
       {packages.map((pkg) => (
         <Grid item xs={12} sm={6} md={4} key={pkg.name}>
-          <Card 
-            sx={{ 
-              height: "100%", 
-              display: "flex", 
+          <Card
+            sx={{
+              height: "100%",
+              display: "flex",
               flexDirection: "column",
               transition: "transform 0.2s, box-shadow 0.2s",
               "&:hover": {
@@ -64,7 +64,7 @@ export function PackagesList({ packages, loading, onInstall }: PackagesListProps
                 </Typography>
                 <Chip label={pkg.version} size="small" variant="outlined" />
               </Box>
-              
+
               {pkg.category && (
                 <Chip
                   label={pkg.category}
@@ -74,7 +74,7 @@ export function PackagesList({ packages, loading, onInstall }: PackagesListProps
                   sx={{ mb: 1 }}
                 />
               )}
-              
+
               <Typography
                 variant="body2"
                 color="text.secondary"
@@ -90,7 +90,7 @@ export function PackagesList({ packages, loading, onInstall }: PackagesListProps
                 {pkg.description}
               </Typography>
             </CardContent>
-            
+
             <CardActions>
               <Button
                 variant="contained"

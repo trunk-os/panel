@@ -22,7 +22,8 @@ export default function VMMetricCard({ collapsed = false }: VMMetricCardProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const secondaryValue = totalCPUs && totalMemory ? `${totalCPUs} vCPUs, ${totalMemory}` : undefined;
+  const secondaryValue =
+    totalCPUs && totalMemory ? `${totalCPUs} vCPUs, ${totalMemory}` : undefined;
 
   return (
     <MetricCard

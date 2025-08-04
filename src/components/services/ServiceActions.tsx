@@ -63,7 +63,7 @@ export function ServiceActions({ service, onViewLogs }: ServiceActionsProps) {
             </IconButton>
           </Tooltip>
         )}
-        
+
         {canStop && (
           <Tooltip title="Stop">
             <IconButton onClick={handleStop} size="small" color="warning">
@@ -71,13 +71,13 @@ export function ServiceActions({ service, onViewLogs }: ServiceActionsProps) {
             </IconButton>
           </Tooltip>
         )}
-        
+
         <Tooltip title="View Logs">
           <IconButton onClick={handleViewLogs} size="small">
             <LogsIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        
+
         {canDelete && (
           <Tooltip title="Delete">
             <IconButton onClick={handleDelete} size="small" color="error">
@@ -91,7 +91,8 @@ export function ServiceActions({ service, onViewLogs }: ServiceActionsProps) {
         <DialogTitle>Delete Service</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the service "{service.name}"? This action cannot be undone.
+            Are you sure you want to delete the service "{service.name}"? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>

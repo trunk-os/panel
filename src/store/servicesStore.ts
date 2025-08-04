@@ -12,7 +12,7 @@ interface ServicesState {
   lastFetch: number | null;
   cacheDuration: number; // in milliseconds
   isInitialized: boolean;
-  
+
   // Actions
   fetchServices: (force?: boolean) => Promise<void>;
   performAction: (action: ServiceAction) => Promise<void>;
@@ -32,9 +32,9 @@ export const useServicesStore = create<ServicesState>((set, get) => ({
   fetchServices: async (force = false) => {
     const { lastFetch, cacheDuration, loading } = get();
     const now = Date.now();
-    
+
     // Check if we should use cached data
-    if (!force && lastFetch && (now - lastFetch) < cacheDuration && !loading) {
+    if (!force && lastFetch && now - lastFetch < cacheDuration && !loading) {
       return;
     }
 
@@ -47,16 +47,22 @@ export const useServicesStore = create<ServicesState>((set, get) => ({
 
     try {
       const response = await api.services.list();
-      console.log(`[DEBUG STORE] servicesStore: received ${response.data.length} services from API`);
-      const containerServices = response.data.filter(s => 
-        s.name.includes('libpod-') || 
-        s.name.includes('gild') || 
-        s.name.includes('charond') || 
-        s.name.includes('buckled') ||
-        s.name.includes('caddy')
+      console.log(
+        `[DEBUG STORE] servicesStore: received ${response.data.length} services from API`
       );
-      console.log(`[DEBUG STORE] servicesStore: ${containerServices.length} container services in store:`, containerServices.map(s => s.name));
-      
+      const containerServices = response.data.filter(
+        (s) =>
+          s.name.includes("libpod-") ||
+          s.name.includes("gild") ||
+          s.name.includes("charond") ||
+          s.name.includes("buckled") ||
+          s.name.includes("caddy")
+      );
+      console.log(
+        `[DEBUG STORE] servicesStore: ${containerServices.length} container services in store:`,
+        containerServices.map((s) => s.name)
+      );
+
       set({
         services: response.data,
         loading: false,
@@ -70,7 +76,7 @@ export const useServicesStore = create<ServicesState>((set, get) => ({
         error: errorMessage,
         loading: false,
       });
-      
+
       const { showToast } = useToastStore.getState();
       showToast({ message: errorMessage, severity: "error" });
     }
@@ -78,7 +84,7 @@ export const useServicesStore = create<ServicesState>((set, get) => ({
 
   performAction: async (action: ServiceAction) => {
     const { showToast } = useToastStore.getState();
-    
+
     try {
       switch (action.type) {
         case "start":
@@ -100,10 +106,10 @@ export const useServicesStore = create<ServicesState>((set, get) => ({
         default:
           throw new Error(`Unknown action: ${action.type}`);
       }
-      
+
       // Invalidate cache and debounced refetch after successful action
       get().invalidateCache();
-      
+
       // Debounce multiple rapid actions to prevent excessive API calls
       if (refreshTimeout) {
         clearTimeout(refreshTimeout);

@@ -1,14 +1,14 @@
 import { useMemo } from "react";
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Box, 
-  LinearProgress, 
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  LinearProgress,
   Chip,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
 } from "@mui/material";
 import { useApiStatusStore } from "@/store/apiStatusStore";
 
@@ -24,39 +24,41 @@ interface ServiceInfo {
 
 export default function ServiceHealthCard({ collapsed = false }: ServiceHealthCardProps) {
   const { status, healthStatus } = useApiStatusStore();
-  
+
   const services = useMemo((): ServiceInfo[] => {
     const serviceList: ServiceInfo[] = [];
-    
+
     if (healthStatus?.buckle) {
       const buckleHealth = healthStatus.buckle;
       serviceList.push({
         name: "Buckle",
         isHealthy: !buckleHealth.error,
-        latency: buckleHealth.latency
+        latency: buckleHealth.latency,
       });
     }
-    
+
     return serviceList;
   }, [healthStatus]);
 
   const isLoading = status === "loading";
 
-  const getHealthColor = (isHealthy: boolean) => isHealthy ? "success" : "error";
-  const getHealthLabel = (isHealthy: boolean) => isHealthy ? "UP" : "DOWN";
+  const getHealthColor = (isHealthy: boolean) => (isHealthy ? "success" : "error");
+  const getHealthLabel = (isHealthy: boolean) => (isHealthy ? "UP" : "DOWN");
 
   if (collapsed) {
-    const healthyCount = services.filter(s => s.isHealthy).length;
+    const healthyCount = services.filter((s) => s.isHealthy).length;
     const totalCount = services.length;
     const allHealthy = healthyCount === totalCount && totalCount > 0;
-    
+
     return (
       <Card sx={{ transition: "all 0.3s ease" }}>
-        <CardContent sx={{ 
-          display: "flex", 
-          alignItems: "center", 
-          padding: "8px 16px !important" 
-        }}>
+        <CardContent
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            padding: "8px 16px !important",
+          }}
+        >
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
             Services
           </Typography>
@@ -65,8 +67,8 @@ export default function ServiceHealthCard({ collapsed = false }: ServiceHealthCa
               <LinearProgress color="primary" />
             </Box>
           ) : (
-            <Typography 
-              variant="body1" 
+            <Typography
+              variant="body1"
               color={allHealthy ? "success.main" : "error.main"}
               sx={{ fontWeight: "bold" }}
             >
@@ -82,7 +84,7 @@ export default function ServiceHealthCard({ collapsed = false }: ServiceHealthCa
     <Card sx={{ height: "100%", transition: "all 0.3s ease" }}>
       <CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <Typography variant="h6">Service Health</Typography>
-        
+
         {isLoading ? (
           <Box sx={{ width: "100%", mt: 4 }}>
             <LinearProgress color="primary" />

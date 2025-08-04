@@ -24,8 +24,7 @@ export function usePackages() {
         }));
         setPackages(packagesData);
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to search packages";
+        const errorMessage = err instanceof Error ? err.message : "Failed to search packages";
         setError(errorMessage);
         showToast({ message: errorMessage, severity: "error" });
       } finally {
@@ -46,9 +45,7 @@ export function usePackages() {
         return null; // Real API doesn't return service data immediately
       } catch (err) {
         const errorMessage =
-          err instanceof Error
-            ? err.message
-            : `Failed to install package ${packageName}`;
+          err instanceof Error ? err.message : `Failed to install package ${packageName}`;
         showToast({ message: errorMessage, severity: "error" });
         throw err;
       }

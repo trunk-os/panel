@@ -43,12 +43,14 @@ export async function handleApiErrorResponse(
 ): Promise<never> {
   // Handle authentication and authorization errors with better logic
   if (response.status === 401 || response.status === 403) {
-    console.log(`[handleApiErrorResponse] ${response.status} error, clearing token and redirecting`);
+    console.log(
+      `[handleApiErrorResponse] ${response.status} error, clearing token and redirecting`
+    );
     clearToken();
-    
+
     // Only redirect to login if not already there (and window exists - not in tests)
-    if (typeof window !== 'undefined' && window.location.hash !== '#/login') {
-      window.location.hash = '#/login';
+    if (typeof window !== "undefined" && window.location.hash !== "#/login") {
+      window.location.hash = "#/login";
     }
   }
 
@@ -81,14 +83,14 @@ export async function handleApiErrorResponse(
 
     if (typeof errorData === "object" && errorData !== null) {
       const data = errorData as Record<string, unknown>;
-      
+
       const error = new ApiError(
         (data?.message as string) || response.statusText,
         response.status,
         data?.errorCode as string,
         data?.details as Record<string, unknown>
       );
-      
+
       // Don't show toast for auth errors as they're handled by auth flow
       if (response.status !== 401 && response.status !== 403) {
         showErrorToast(error);

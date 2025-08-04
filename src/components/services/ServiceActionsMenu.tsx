@@ -89,13 +89,13 @@ export function ServiceActionsMenu({ service, onViewLogs }: ServiceActionsMenuPr
           <MoreVertIcon fontSize="small" />
         </IconButton>
       </Tooltip>
-      
+
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         PaperProps={{
-          sx: { minWidth: 140 }
+          sx: { minWidth: 140 },
         }}
       >
         {canStart && (
@@ -113,7 +113,7 @@ export function ServiceActionsMenu({ service, onViewLogs }: ServiceActionsMenuPr
             <ListItemText>Start</ListItemText>
           </MenuItem>
         )}
-        
+
         {canStop && (
           <MenuItem
             onClick={handleStop}
@@ -129,7 +129,7 @@ export function ServiceActionsMenu({ service, onViewLogs }: ServiceActionsMenuPr
             <ListItemText>Stop</ListItemText>
           </MenuItem>
         )}
-        
+
         <MenuItem
           onClick={handleViewLogs}
           sx={{
@@ -143,7 +143,7 @@ export function ServiceActionsMenu({ service, onViewLogs }: ServiceActionsMenuPr
           </ListItemIcon>
           <ListItemText>View Logs</ListItemText>
         </MenuItem>
-        
+
         {canDelete && (
           <MenuItem
             onClick={handleDelete}
@@ -167,7 +167,8 @@ export function ServiceActionsMenu({ service, onViewLogs }: ServiceActionsMenuPr
         <DialogTitle>Delete Service</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the service "{service.name}"? This action cannot be undone.
+            Are you sure you want to delete the service "{service.name}"? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>

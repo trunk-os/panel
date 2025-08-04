@@ -15,28 +15,32 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const location = useLocation();
 
   // Debug logging
-  console.log('[AuthGuard] State:', { isAuthenticated, isLoading, pathname: location.pathname });
+  console.log("[AuthGuard] State:", { isAuthenticated, isLoading, pathname: location.pathname });
 
   useEffect(() => {
-    console.log('[AuthGuard] useEffect:', { isAuthenticated, isLoading, pathname: location.pathname });
+    console.log("[AuthGuard] useEffect:", {
+      isAuthenticated,
+      isLoading,
+      pathname: location.pathname,
+    });
     if (!isLoading && !isAuthenticated) {
-      console.log('[AuthGuard] Redirecting to login');
-      navigate("/login", { 
+      console.log("[AuthGuard] Redirecting to login");
+      navigate("/login", {
         replace: true,
-        state: { from: location.pathname }
+        state: { from: location.pathname },
       });
     }
   }, [isAuthenticated, isLoading, navigate, location.pathname]);
 
   if (isLoading) {
     let loadingMessage = "Authenticating...";
-    
+
     if (lastConnectionError) {
       loadingMessage = "Connecting to server...";
     } else if (authError) {
       loadingMessage = "Validating session...";
     }
-    
+
     return (
       <Box
         sx={{

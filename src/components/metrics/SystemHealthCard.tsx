@@ -1,4 +1,13 @@
-import { Box, Card, CardContent, Typography, Tooltip, Button, Chip, LinearProgress } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Tooltip,
+  Button,
+  Chip,
+  LinearProgress,
+} from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useApiStatusStore } from "@/store/apiStatusStore";
 import { useMemo } from "react";
@@ -20,16 +29,16 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
 
   const services = useMemo((): ServiceInfo[] => {
     const serviceList: ServiceInfo[] = [];
-    
+
     if (healthStatus?.buckle) {
       const buckleHealth = healthStatus.buckle;
       serviceList.push({
         name: "Buckle",
         isHealthy: !buckleHealth.error,
-        latency: buckleHealth.latency
+        latency: buckleHealth.latency,
       });
     }
-    
+
     return serviceList;
   }, [healthStatus]);
 
@@ -41,22 +50,22 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
       })
     : "";
 
-  const healthyCount = services.filter(s => s.isHealthy).length;
+  const healthyCount = services.filter((s) => s.isHealthy).length;
   const totalCount = services.length;
   const allServicesHealthy = healthyCount === totalCount && totalCount > 0;
 
   if (collapsed) {
     return (
       <Card sx={{ transition: "all 0.3s ease" }}>
-        <CardContent sx={{ 
-          display: "flex", 
-          alignItems: "center", 
-          padding: "8px 16px !important",
-          gap: 2
-        }}>
-          <Typography variant="subtitle1">
-            System
-          </Typography>
+        <CardContent
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            padding: "8px 16px !important",
+            gap: 2,
+          }}
+        >
+          <Typography variant="subtitle1">System</Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {apiStatus === null ? (
               <Typography variant="body2">Checking...</Typography>
@@ -74,8 +83,8 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
                 <LinearProgress color="primary" />
               </Box>
             ) : (
-              <Typography 
-                variant="body2" 
+              <Typography
+                variant="body2"
                 color={allServicesHealthy ? "success.main" : "error.main"}
                 sx={{ fontWeight: "bold" }}
               >
@@ -103,13 +112,15 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
         </Box>
 
         <Box sx={{ display: "flex", flexGrow: 1, gap: 2 }}>
-          <Box sx={{ 
-            flex: 2, 
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: "center", 
-            justifyContent: "center" 
-          }}>
+          <Box
+            sx={{
+              flex: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               API Status
             </Typography>
@@ -125,7 +136,7 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
                     fontSize: "1.1rem",
                     padding: "1rem 0.5rem",
                     fontWeight: "bold",
-                    mb: 1
+                    mb: 1,
                   }}
                 />
                 <Button
@@ -148,18 +159,20 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
             </Typography>
           </Box>
 
-          <Box sx={{ 
-            flex: 1, 
-            display: "flex", 
-            flexDirection: "column",
-            borderLeft: 1,
-            borderColor: "divider",
-            pl: 2
-          }}>
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              borderLeft: 1,
+              borderColor: "divider",
+              pl: 2,
+            }}
+          >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Service Health
             </Typography>
-            
+
             {isChecking ? (
               <Box sx={{ width: "100%", mt: 2 }}>
                 <LinearProgress color="primary" />
@@ -172,8 +185,8 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
                   </Typography>
                 ) : (
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    <Typography 
-                      variant="body1" 
+                    <Typography
+                      variant="body1"
                       color={allServicesHealthy ? "success.main" : "error.main"}
                       sx={{ fontWeight: "bold", textAlign: "center" }}
                     >
@@ -181,7 +194,10 @@ export default function SystemHealthCard({ collapsed = false }: SystemHealthCard
                     </Typography>
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                       {services.map((service) => (
-                        <Box key={service.name} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          key={service.name}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <Typography variant="body2" sx={{ flex: 1 }}>
                             {service.name}
                           </Typography>

@@ -68,7 +68,7 @@ export function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
+
     // Clear any previous auth errors
     clearAuthError();
 
@@ -82,10 +82,12 @@ export function LoginPage() {
           setError("Invalid username or password");
         } else if (err.statusCode === 403) {
           setError("Access denied. Please check your credentials");
-        } else if (err.message.includes("ERR_CONNECTION_REFUSED") || 
-                   err.message.includes("ECONNREFUSED") ||
-                   err.message.includes("ERR_NETWORK") ||
-                   err.message.includes("Failed to fetch")) {
+        } else if (
+          err.message.includes("ERR_CONNECTION_REFUSED") ||
+          err.message.includes("ECONNREFUSED") ||
+          err.message.includes("ERR_NETWORK") ||
+          err.message.includes("Failed to fetch")
+        ) {
           setError("Unable to connect to server. Please check your connection");
         } else {
           setError(err.message || "Login failed. Please try again");
@@ -103,7 +105,7 @@ export function LoginPage() {
     if (error) {
       setError("");
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [field]: e.target.value,

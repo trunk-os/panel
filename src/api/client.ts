@@ -66,9 +66,7 @@ export async function fetchApi<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const url = endpoint.startsWith("http")
-    ? endpoint
-    : `${API_BASE_URL}${endpoint}`;
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
 
   const headers: Record<string, string> = {
     Accept: "application/cbor, application/json",
@@ -102,10 +100,7 @@ export async function fetchApi<T = unknown>(
       await handleErrorResponse(response);
     }
 
-    if (
-      response.status === 204 ||
-      response.headers.get("Content-Length") === "0"
-    ) {
+    if (response.status === 204 || response.headers.get("Content-Length") === "0") {
       return { data: null as unknown as T, statusCode: response.status };
     }
 
@@ -139,10 +134,7 @@ export async function fetchApi<T = unknown>(
     }
 
     if (error instanceof ApiError) throw error;
-    throw new ApiError(
-      error instanceof Error ? error.message : "Network error",
-      0
-    );
+    throw new ApiError(error instanceof Error ? error.message : "Network error", 0);
   }
 }
 
@@ -150,11 +142,7 @@ export const api = {
   get: <T = unknown>(endpoint: string, options?: RequestInit) =>
     fetchApi<T>(endpoint, { ...options, method: "GET" }),
 
-  post: <T = unknown>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestInit
-  ) =>
+  post: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit) =>
     fetchApi<T>(endpoint, {
       ...options,
       method: "POST",
@@ -188,8 +176,7 @@ export const api = {
       api.post<void>("/zfs/modify_dataset", request, options),
     modifyVolume: (request: ZFSModifyVolume, options?: RequestInit) =>
       api.post<void>("/zfs/modify_volume", request, options),
-    destroy: (name: string, options?: RequestInit) =>
-      api.post<void>("/zfs/destroy", name, options),
+    destroy: (name: string, options?: RequestInit) => api.post<void>("/zfs/destroy", name, options),
   },
   users: {
     list: (pagination?: Pagination, options?: RequestInit) =>
@@ -198,10 +185,8 @@ export const api = {
       api.put<UserData>("/users", { id: 0, ...user }, options),
     update: (user: UserUpdateRequest, options?: RequestInit) =>
       api.post<UserUpdateRequest>(`/user/${user.id}`, user, options),
-    get: (userId: number, options?: RequestInit) =>
-      api.get<UserData>(`/user/${userId}`, options),
-    destroy: (userId: number, options?: RequestInit) =>
-      api.delete(`/user/${userId}`, options),
+    get: (userId: number, options?: RequestInit) => api.get<UserData>(`/user/${userId}`, options),
+    destroy: (userId: number, options?: RequestInit) => api.delete(`/user/${userId}`, options),
     restore: (userId: number, options?: RequestInit) =>
       api.post<UserData>(`/user/${userId}/restore`, {}, options),
   },
@@ -214,15 +199,9 @@ export const api = {
   services: {
     list: async (options?: RequestInit): Promise<ApiResponse<Service[]>> => {
       // Convert systemd units to services
-      const unitsResponse = await api.post<BackendUnit[]>(
-        "/systemd/list",
-        null,
-        options
-      );
+      const unitsResponse = await api.post<BackendUnit[]>("/systemd/list", null, options);
 
-      console.log(
-        `[DEBUG] Backend returned ${unitsResponse.data.length} units total`
-      );
+      console.log(`[DEBUG] Backend returned ${unitsResponse.data.length} units total`);
 
       // Filter and log container services specifically
       const containerUnits = unitsResponse.data.filter(
@@ -265,17 +244,12 @@ export const api = {
         const activeState = mapRuntimeStateToActiveState(runtimeState);
         const subState = mapLastRunStateToSubState(lastRunState);
 
-        const finalStatus = mapSystemdStateToServiceStatus(
-          activeState,
-          subState
-        );
+        const finalStatus = mapSystemdStateToServiceStatus(activeState, subState);
 
         const service = {
           ...unit,
           id: unit.name,
-          load_state: mapEnabledStateToLoadState(
-            unit.enabled_state || "Disabled"
-          ),
+          load_state: mapEnabledStateToLoadState(unit.enabled_state || "Disabled"),
           active_state: activeState,
           sub_state: subState,
           status: finalStatus,
@@ -314,38 +288,19 @@ export const api = {
     },
 
     start: (serviceId: string, options?: RequestInit) =>
-      api.post<void>(
-        "/systemd/set_unit",
-        { name: serviceId, action: "start" },
-        options
-      ),
+      api.post<void>("/systemd/set_unit", { name: serviceId, action: "start" }, options),
 
     stop: (serviceId: string, options?: RequestInit) =>
-      api.post<void>(
-        "/systemd/set_unit",
-        { name: serviceId, action: "stop" },
-        options
-      ),
+      api.post<void>("/systemd/set_unit", { name: serviceId, action: "stop" }, options),
 
     restart: (serviceId: string, options?: RequestInit) =>
-      api.post<void>(
-        "/systemd/set_unit",
-        { name: serviceId, action: "restart" },
-        options
-      ),
+      api.post<void>("/systemd/set_unit", { name: serviceId, action: "restart" }, options),
 
-    delete: async (
-      serviceId: string,
-      options?: RequestInit
-    ): Promise<ApiResponse<void>> => {
+    delete: async (serviceId: string, options?: RequestInit): Promise<ApiResponse<void>> => {
       // Extract package info from service name and uninstall
       const packageName = extractPackageNameFromUnit(serviceId);
       const version = "latest"; // Default version, could be extracted from unit metadata
-      return api.post<void>(
-        "/packages/uninstall",
-        { name: packageName, version },
-        options
-      );
+      return api.post<void>("/packages/uninstall", { name: packageName, version }, options);
     },
 
     logs: async (
@@ -384,8 +339,7 @@ export const api = {
       api.post<PromptResponses>("/packages/get_responses", pkg, options),
     listInstalled: (options?: RequestInit) =>
       api.get<PackageTitle[]>("/packages/list_installed", options),
-    list: (options?: RequestInit) =>
-      api.get<PackageTitle[]>("/packages/list", options),
+    list: (options?: RequestInit) => api.get<PackageTitle[]>("/packages/list", options),
     installed: (pkg: PackageTitle, options?: RequestInit) =>
       api.post<boolean>("/packages/installed", pkg, options),
     install: (pkg: PackageTitle, options?: RequestInit) =>

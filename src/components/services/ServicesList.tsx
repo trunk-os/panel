@@ -26,12 +26,8 @@ interface ServicesListProps {
 }
 
 export function ServicesList({ services, loading, onViewLogs }: ServicesListProps) {
-  const {
-    visibleColumns,
-    columnOrder,
-    updateVisibleColumns,
-    updateColumnOrder,
-  } = useServicesTableConfig();
+  const { visibleColumns, columnOrder, updateVisibleColumns, updateColumnOrder } =
+    useServicesTableConfig();
 
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -70,13 +66,7 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
   const renderCellContent = (service: Service, column: ServiceColumn) => {
     switch (column) {
       case "status":
-        return (
-          <Chip 
-            label={service.status} 
-            color={getStatusColor(service.status)} 
-            size="small" 
-          />
-        );
+        return <Chip label={service.status} color={getStatusColor(service.status)} size="small" />;
       case "name":
         return (
           <Typography variant="body2" fontWeight="medium">
@@ -110,7 +100,9 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
           <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
             {service.volumeRoot}
           </Typography>
-        ) : "-";
+        ) : (
+          "-"
+        );
       case "load_state":
         return service.load_state;
       case "active_state":
@@ -134,7 +126,9 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
           <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
             {service.job_object_path}
           </Typography>
-        ) : "-";
+        ) : (
+          "-"
+        );
       case "actions":
         return <ServiceActionsMenu service={service} onViewLogs={onViewLogs} />;
       default:
@@ -148,12 +142,12 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
 
   const getOrderedVisibleColumns = (): ServiceColumn[] => {
     // Filter ordered columns to only include visible ones
-    const orderedVisible = columnOrder.filter(col => visibleColumns.includes(col));
-    
+    const orderedVisible = columnOrder.filter((col) => visibleColumns.includes(col));
+
     // Ensure actions column is always last if visible
-    const withoutActions = orderedVisible.filter(col => col !== "actions");
+    const withoutActions = orderedVisible.filter((col) => col !== "actions");
     const hasActions = visibleColumns.includes("actions");
-    
+
     return hasActions ? [...withoutActions, "actions"] : withoutActions;
   };
 
@@ -190,8 +184,8 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
           onColumnOrderChange={updateColumnOrder}
         />
       </Box>
-      
-      <TableContainer 
+
+      <TableContainer
         component={Paper}
         sx={{
           maxWidth: "100%",
@@ -202,8 +196,8 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
           <TableHead>
             <TableRow>
               {orderedVisibleColumns.map((column) => (
-                <TableCell 
-                  key={column} 
+                <TableCell
+                  key={column}
                   align={getColumnAlign(column)}
                   sx={{
                     fontWeight: 600,
@@ -217,7 +211,7 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
           </TableHead>
           <TableBody>
             {services.map((service) => (
-              <TableRow 
+              <TableRow
                 key={service.id}
                 sx={{
                   "&:nth-of-type(odd)": {
@@ -229,8 +223,8 @@ export function ServicesList({ services, loading, onViewLogs }: ServicesListProp
                 }}
               >
                 {orderedVisibleColumns.map((column) => (
-                  <TableCell 
-                    key={column} 
+                  <TableCell
+                    key={column}
                     align={getColumnAlign(column)}
                     sx={{
                       maxWidth: column === "description" ? 300 : "auto",
