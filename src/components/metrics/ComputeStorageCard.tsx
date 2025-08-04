@@ -1,21 +1,20 @@
-import { Box, Card, CardContent, Typography, LinearProgress, Grid } from "@mui/material";
+import { Box, Card, CardContent, Typography, IconButton } from "@mui/material";
+import { ZoomIn, ZoomOut } from "@mui/icons-material";
+import { useState } from "react";
 import { useApiStatusStore } from "@/store/apiStatusStore";
-import Sparkline from "@/components/Sparkline";
+import MultiSparkline from "@/components/MultiSparkline";
 
-interface ComputeStorageCardProps {
-  collapsed?: boolean;
-}
-
-export default function ComputeStorageCard({ collapsed = false }: ComputeStorageCardProps) {
-  const { systemStatus, status, metricHistory } = useApiStatusStore();
-  const isLoading = status === "loading" || !systemStatus;
+export default function ComputeStorageCard() {
+  const { systemStatus, metricHistory } = useApiStatusStore();
+  const isLoading = !systemStatus;
+  const [zoomedChart, setZoomedChart] = useState<"cpu" | "memory" | null>(null);
 
   const formatBytes = (bytes: number): string => {
     const gb = bytes / 1024 ** 3;
     return `${gb.toFixed(1)} GB`;
   };
 
-  const cpuUsage = systemStatus ? Math.round(systemStatus.cpu_usage) : 0;
+  const cpuUsage = systemStatus ? Math.round(systemStatus.cpu_usage * 100) : 0;
   const cpuCount = systemStatus ? systemStatus.cpus : 0;
   const loadAverage = systemStatus ? systemStatus.load_average[0].toFixed(2) : "0.00";
   const memoryPercentage = systemStatus
@@ -27,219 +26,170 @@ export default function ComputeStorageCard({ collapsed = false }: ComputeStorage
   const totalMemory = systemStatus ? systemStatus.total_memory : 0;
   const usedMemory = systemStatus ? systemStatus.total_memory - systemStatus.available_memory : 0;
 
-  const formatBytesToGB = (bytes: number): number => Math.round((bytes / 1024 ** 3) * 10) / 10; // One decimal place
-  const totalDisk = systemStatus ? formatBytesToGB(systemStatus.total_disk) : undefined;
-  const availableDisk = systemStatus ? formatBytesToGB(systemStatus.available_disk) : undefined;
-  const usedDisk =
-    totalDisk && availableDisk !== undefined ? Math.max(0, totalDisk - availableDisk) : undefined;
-  const diskUsagePercent =
-    totalDisk &&
-    totalDisk > 0 &&
-    systemStatus?.total_disk &&
-    systemStatus?.available_disk !== undefined
-      ? Math.round(
-          ((systemStatus.total_disk - systemStatus.available_disk) / systemStatus.total_disk) * 100
-        )
-      : undefined;
+  const handleChartClick = (chartType: "cpu" | "memory") => {
+    setZoomedChart(zoomedChart === chartType ? null : chartType);
+  };
 
-  if (collapsed) {
-    return (
-      <Card sx={{ transition: "all 0.3s ease" }}>
-        <CardContent
-          sx={{
-            padding: "8px 16px !important",
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          <Typography variant="subtitle1">Resources</Typography>
-          {isLoading ? (
-            <Box sx={{ width: 80 }}>
-              <LinearProgress color="secondary" />
-            </Box>
-          ) : (
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="body2" color="secondary.main" sx={{ fontWeight: "bold" }}>
-                  CPU: {cpuUsage}%
-                </Typography>
-                <Sparkline
-                  data={metricHistory.cpuHistory}
-                  width={40}
-                  height={16}
-                  color="#9c27b0"
-                  strokeWidth={1.5}
-                  minScale={20}
-                />
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="body2" color="info.main" sx={{ fontWeight: "bold" }}>
-                  Mem: {memoryPercentage}%
-                </Typography>
-                <Sparkline
-                  data={metricHistory.memoryHistory}
-                  width={40}
-                  height={16}
-                  color="#1976d2"
-                  strokeWidth={1.5}
-                />
-              </Box>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card sx={{ height: "100%", transition: "all 0.3s ease" }}>
       <CardContent sx={{ display: "flex", flexDirection: "column", height: "100%", pb: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Compute & Storage
-        </Typography>
-
-        {isLoading ? (
-          <Box sx={{ mt: 4 }}>
-            <LinearProgress color="secondary" />
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                pb: 2,
-                borderBottom: 1,
-                borderColor: "divider",
-              }}
-            >
-              <Box sx={{ flex: 1, textAlign: "center" }}>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mb: 0.5, display: "block" }}
-                >
-                  CPU Usage
-                </Typography>
-                <Typography variant="h5" color="secondary.main" sx={{ mb: 1 }}>
-                  {cpuUsage}%
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
-                  <Sparkline
-                    data={metricHistory.cpuHistory}
-                    width={120}
-                    height={30}
-                    color="#9c27b0"
-                    strokeWidth={2}
-                    showBaseline={true}
-                    showValues={false}
-                    minScale={20}
-                  />
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  {cpuCount} cores, {loadAverage} load
-                </Typography>
-              </Box>
-
-              <Box sx={{ flex: 1, textAlign: "center" }}>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mb: 0.5, display: "block" }}
-                >
-                  Memory Usage
-                </Typography>
-                <Typography variant="h5" color="secondary.main" sx={{ mb: 1 }}>
-                  {memoryPercentage}%
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
-                  <Sparkline
-                    data={metricHistory.memoryHistory}
-                    width={120}
-                    height={30}
-                    color="#1976d2"
-                    strokeWidth={2}
-                    showBaseline={true}
-                    showValues={false}
-                  />
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  {formatBytes(usedMemory)} / {formatBytes(totalMemory)}
-                </Typography>
-              </Box>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="h6">
+            Resources
+          </Typography>
+          {!isLoading && (
+            <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: "11px" }}>
+                {cpuCount} cores, {loadAverage} load
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: "11px" }}>
+                {formatBytes(usedMemory)} / {formatBytes(totalMemory)}
+              </Typography>
             </Box>
+          )}
+        </Box>
 
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexGrow: 1,
-                py: 2,
-                px: 1,
-              }}
+        <Box sx={{ 
+          display: "flex", 
+          flexDirection: { xs: "column", md: "row" }, 
+          height: "100%", 
+          gap: 2 
+        }}>
+          {/* CPU Chart */}
+          <Box sx={{ 
+            flex: {
+              xs: zoomedChart === "cpu" ? 2 : zoomedChart === "memory" ? 0.5 : 1,
+              md: zoomedChart === "cpu" ? 3 : zoomedChart === "memory" ? 0.5 : 1
+            },
+            display: "flex", 
+            flexDirection: "column", 
+            px: "5px",
+            minWidth: 0,
+            minHeight: { xs: zoomedChart === "cpu" ? 180 : 100, md: "auto" },
+            position: "relative",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              "& .zoom-indicator": {
+                opacity: 1,
+              }
+            }
+          }}
+          onClick={() => handleChartClick("cpu")}
+          >
+            <Box sx={{ 
+              position: "absolute", 
+              top: 4, 
+              right: 4, 
+              zIndex: 1,
+              opacity: 0,
+              transition: "opacity 0.2s ease",
+              pointerEvents: "none"
+            }}
+            className="zoom-indicator"
             >
-              {systemStatus?.total_disk && systemStatus.total_disk > 0 && totalDisk ? (
-                <Box sx={{ textAlign: "center", width: "100%" }}>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mb: 1, display: "block" }}
-                  >
-                    Disk Storage
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 2,
-                      mb: 2,
-                    }}
-                  >
-                    <Typography variant="h4" color="info.main">
-                      {usedDisk || 0} GB
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {availableDisk} GB Available of {totalDisk} GB
-                    </Typography>
-                  </Box>
-                  <Box sx={{ width: "80%", mx: "auto" }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={diskUsagePercent || 0}
-                      color={
-                        diskUsagePercent && diskUsagePercent > 90
-                          ? "error"
-                          : diskUsagePercent && diskUsagePercent > 70
-                            ? "warning"
-                            : "info"
-                      }
-                      sx={{ height: 6, borderRadius: 3 }}
-                    />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: "block", textAlign: "right", mt: 0.5 }}
-                    >
-                      {diskUsagePercent}% used
-                    </Typography>
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ textAlign: "center", py: 2 }}>
-                  <Typography variant="h5" color="info.main" sx={{ mb: 1 }}>
-                    Unknown
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Disk information unavailable
-                  </Typography>
-                </Box>
-              )}
+              <IconButton 
+                size="small" 
+                sx={{ 
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  width: 20,
+                  height: 20,
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.9)" }
+                }}
+              >
+                {zoomedChart === "cpu" ? <ZoomOut sx={{ fontSize: 12 }} /> : <ZoomIn sx={{ fontSize: 12 }} />}
+              </IconButton>
             </Box>
+            <Typography variant="caption" sx={{ fontSize: "10px", color: "text.secondary", mb: 0.5, textAlign: "center" }}>
+              CPU Usage
+            </Typography>
+            <MultiSparkline
+                series={[
+                  {
+                    name: "CPU",
+                    data: metricHistory.cpuHistory,
+                    color: "#9c27b0",
+                    currentValue: cpuUsage,
+                    unit: "%"
+                  }
+                ]}
+                height={zoomedChart === "cpu" ? 140 : 80}
+                strokeWidth={2}
+                showCurrentValues={zoomedChart === "cpu"}
+                showTimeline={zoomedChart === "cpu"}
+                timelineIntervalMs={5000}
+                timeScale="1m"
+              />
           </Box>
-        )}
+          
+          {/* Memory Chart */}
+          <Box sx={{ 
+            flex: {
+              xs: zoomedChart === "memory" ? 2 : zoomedChart === "cpu" ? 0.5 : 1,
+              md: zoomedChart === "memory" ? 3 : zoomedChart === "cpu" ? 0.5 : 1
+            },
+            display: "flex", 
+            flexDirection: "column", 
+            px: "5px",
+            minWidth: 0,
+            minHeight: { xs: zoomedChart === "memory" ? 180 : 100, md: "auto" },
+            position: "relative",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              "& .zoom-indicator": {
+                opacity: 1,
+              }
+            }
+          }}
+          onClick={() => handleChartClick("memory")}
+          >
+            <Box sx={{ 
+              position: "absolute", 
+              top: 4, 
+              right: 4, 
+              zIndex: 1,
+              opacity: 0,
+              transition: "opacity 0.2s ease",
+              pointerEvents: "none"
+            }}
+            className="zoom-indicator"
+            >
+              <IconButton 
+                size="small" 
+                sx={{ 
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  width: 20,
+                  height: 20,
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.9)" }
+                }}
+              >
+                {zoomedChart === "memory" ? <ZoomOut sx={{ fontSize: 12 }} /> : <ZoomIn sx={{ fontSize: 12 }} />}
+              </IconButton>
+            </Box>
+            <Typography variant="caption" sx={{ fontSize: "10px", color: "text.secondary", mb: 0.5, textAlign: "center" }}>
+              Memory Usage
+            </Typography>
+            <MultiSparkline
+                series={[
+                  {
+                    name: "Memory",
+                    data: metricHistory.memoryHistory,
+                    color: "#1976d2",
+                    currentValue: memoryPercentage,
+                    unit: "%"
+                  }
+                ]}
+                height={zoomedChart === "memory" ? 120 : 80}
+                strokeWidth={2}
+                showCurrentValues={zoomedChart === "memory"}
+                showTimeline={zoomedChart === "memory"}
+                timelineIntervalMs={5000}
+                timeScale="1m"
+              />
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

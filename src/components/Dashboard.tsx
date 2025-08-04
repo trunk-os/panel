@@ -1,27 +1,29 @@
-import { Typography, Card, CardContent, Box, useMediaQuery, useTheme } from "@mui/material";
-import { useState, useEffect, useRef } from "react";
+import { Typography, Card, CardContent, Box, useMediaQuery, Select, MenuItem, FormControl } from "@mui/material";
+import { useState, useEffect } from "react";
 import SystemHealthCard from "./metrics/SystemHealthCard";
 import ComputeStorageCard from "./metrics/ComputeStorageCard";
-import InfrastructureCard from "./metrics/InfrastructureCard";
 import SkeletonCard from "./SkeletonCard";
 import AuditLog from "./AuditLog";
 import { useApiStatusStore } from "@/store/apiStatusStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
-const drawerWidth = 240;
 const cardHeight = 300;
 
 export default function Dashboard() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { systemStatus } = useApiStatusStore();
+  const isVeryLargeScreen = useMediaQuery("(min-width: 1600px)");
+  const { systemStatus, lastChecked, stopPolling, startPolling } = useApiStatusStore();
+  const { pollingInterval, setPollingInterval } = useSettingsStore();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const metricsRef = useRef<HTMLDivElement>(null);
-  const dashboardRef = useRef<HTMLDivElement>(null);
-
-  const [showDebug] = useState(false);
+  const intervalOptions = [
+    { value: 1000, label: "1s" },
+    { value: 5000, label: "5s" },
+    { value: 10000, label: "10s" },
+    { value: 30000, label: "30s" },
+    { value: 60000, label: "1m" },
+    { value: 0, label: "Off" },
+  ];
 
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -37,45 +39,6 @@ export default function Dashboard() {
     return `${minutes} minute${minutes !== 1 ? "s" : ""}`;
   };
 
-  useEffect(() => {
-    if (!metricsRef.current) return;
-
-    const headerHeight = 64;
-    const halfRowHeight = cardHeight / 2;
-
-    const setupObserver = () => {
-      const observerOptions = {
-        root: null,
-        rootMargin: `-${headerHeight + halfRowHeight}px 0px 0px 0px`,
-        threshold: 0,
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        const entry = entries[0];
-        setIsCollapsed(!entry.isIntersecting);
-      }, observerOptions);
-
-      if (metricsRef.current) {
-        observer.observe(metricsRef.current);
-      }
-
-      return observer;
-    };
-
-    let observer = setupObserver();
-
-    const handleResize = () => {
-      observer.disconnect();
-      observer = setupObserver();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      observer.disconnect();
-    };
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,7 +50,6 @@ export default function Dashboard() {
 
   return (
     <Box
-      ref={dashboardRef}
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -96,20 +58,6 @@ export default function Dashboard() {
         minHeight: "100%",
       }}
     >
-      {showDebug && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: 64 + cardHeight / 2,
-            left: 0,
-            right: 0,
-            height: "2px",
-            backgroundColor: "red",
-            zIndex: 9999,
-            pointerEvents: "none",
-          }}
-        />
-      )}
       <Box>
         <Typography variant="h2">Dashboard</Typography>
         {systemStatus ? (
@@ -131,6 +79,43 @@ export default function Dashboard() {
             <Typography variant="body1" color="text.secondary">
               Uptime: {formatUptime(systemStatus.uptime)}
             </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="body1" color="text.secondary">
+                Last Check: {lastChecked ? lastChecked.toLocaleTimeString(undefined, {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                }) : "--:--:--"}
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 60 }}>
+                <Select
+                  value={pollingInterval}
+                  onChange={(e) => {
+                    const newInterval = e.target.value as number;
+                    setPollingInterval(newInterval);
+                    stopPolling();
+                    if (newInterval > 0) {
+                      startPolling(newInterval);
+                    }
+                  }}
+                  variant="standard"
+                  sx={{ 
+                    fontSize: "0.875rem",
+                    color: "text.secondary",
+                    "& .MuiSelect-select": {
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    },
+                  }}
+                >
+                  {intervalOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
         ) : (
           <Typography variant="body1" color="text.secondary">
@@ -139,75 +124,27 @@ export default function Dashboard() {
         )}
       </Box>
 
-      {isCollapsed && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: 64,
-            left: isMobile ? 0 : drawerWidth,
-            right: 0,
-            zIndex: 1050,
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[900]
-                : theme.palette.background.paper,
-            boxShadow: 3,
-            py: 0.75,
-            px: 1.5,
-            display: "flex",
-            flexDirection: "row",
-            gap: 1,
-            transition: "all 0.3s ease",
-            minHeight: "56px",
-            alignItems: "center",
-            width: isMobile ? "100%" : `calc(100% - ${drawerWidth}px)`,
-            opacity: 0.95,
-          }}
-        >
-          <Box sx={{ flex: 1 }}>
-            <SystemHealthCard collapsed={true} />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <ComputeStorageCard collapsed={true} />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <InfrastructureCard collapsed={true} />
-          </Box>
-        </Box>
-      )}
-
-      <Box
-        ref={metricsRef}
-        id="metrics-section"
-        sx={{
-          position: "relative",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
+      <Box>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", xl: "row" }, gap: 2 }}>
+          <Box sx={{ 
+            flex: { xs: 1, xl: 1 }, 
+            minWidth: 0, 
+            height: cardHeight,
+          }}>
             <SystemHealthCard />
           </Box>
 
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
+          <Box sx={{ 
+            flex: { xs: 1, xl: 3 }, 
+            minWidth: 0, 
+            height: cardHeight,
+          }}>
             <ComputeStorageCard />
-          </Box>
-
-          <Box sx={{ flex: 1, width: "100%", height: cardHeight }}>
-            <InfrastructureCard />
           </Box>
         </Box>
       </Box>
 
-      <Box
-        sx={{
-          width: "100%",
-          mt: isCollapsed ? 6 : 0,
-          transition: "margin-top 0.3s ease",
-          position: "relative",
-        }}
-      >
+      <Box>
         {isLoading ? (
           <SkeletonCard titleWidth={150} withFooter={true} />
         ) : (

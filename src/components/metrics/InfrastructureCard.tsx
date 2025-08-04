@@ -128,7 +128,7 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
               }}
             >
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
-                Virtual Machines
+                VMs
               </Typography>
               <Typography variant="h3" color="info.main" sx={{ mb: 1 }}>
                 {activeVMs || 0}
@@ -154,7 +154,7 @@ export default function InfrastructureCard({ collapsed = false }: Infrastructure
               }}
             >
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
-                Archive Storage
+                Archive
               </Typography>
               <Typography variant="h3" color="primary.main" sx={{ mb: 1 }}>
                 {usagePercent || 0}%

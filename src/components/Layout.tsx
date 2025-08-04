@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -9,58 +9,33 @@ import {
   Typography,
   Divider,
   useMediaQuery,
-  useTheme,
   Box,
   Grid,
-  Container,
   Tooltip,
   Menu,
   MenuItem,
+  Container,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { useThemeStore } from "@/store/themeStore";
 import { useAuthStore } from "@/store/authStore";
 import trunkLogo from "@/assets/logos/new_trunk_header.png";
 import Sidebar from "./Sidebar";
 
-const drawerWidth = 240;
-
-const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
-  open?: boolean;
-}>(({ theme, open }) => ({
-  flexGrow: 1,
-  padding: theme.spacing(3),
-  transition: theme.transitions.create(["margin", "width"], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  marginLeft: 0,
-  backgroundColor: theme.palette.background.default,
-  height: "100vh",
-  width: "100%",
-  boxSizing: "border-box",
-  overflow: "auto",
-  display: "flex",
-  flexDirection: "column",
-  ...(open && {
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-  }),
-}));
-
 const toolbarHeight = 64;
 
 export default function Layout() {
   const navigate = useNavigate();
-  const theme = useTheme();
   const { mode, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  // Only show sidebar by default on very large screens (1600px+)
+  const isVeryLargeScreen = useMediaQuery("(min-width: 1600px)");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Auto-open sidebar on very large screens, close on smaller screens
+  useEffect(() => {
+    console.log('Layout: isVeryLargeScreen:', isVeryLargeScreen, 'window.innerWidth:', window.innerWidth);
+    setSidebarOpen(isVeryLargeScreen);
+  }, [isVeryLargeScreen]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
@@ -81,20 +56,11 @@ export default function Layout() {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        backgroundColor: "background.default",
-        overflow: "hidden",
-      }}
-    >
+    <>
       <AppBar
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          width: "100%",
         }}
       >
         <Toolbar>
@@ -106,7 +72,7 @@ export default function Layout() {
                   aria-label="open drawer"
                   edge="start"
                   onClick={handleDrawerToggle}
-                  sx={{ mr: 1, display: { md: "none" } }}
+                  sx={{ mr: 1, display: isVeryLargeScreen ? "none" : "block" }}
                 >
                   <span className="material-symbols-outlined">menu</span>
                 </IconButton>
@@ -183,32 +149,24 @@ export default function Layout() {
           </Grid>
         </Toolbar>
       </AppBar>
-      <Sidebar open={sidebarOpen} onClose={handleDrawerToggle} />
-      <Main sx={{ pl: 0, ml: 10 }} open={sidebarOpen}>
-        <Box sx={{ height: toolbarHeight, flexShrink: 0 }} />
-        <Container
-          maxWidth={false}
-          disableGutters
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "left",
-            overflow: "visible",
-            pl: 10,
-          }}
-        >
-          <Box
-            sx={{
-              width: "100%",
-              maxWidth: "1400px",
-              pr: 15,
-              overflow: "visible",
-            }}
-          >
-            <Outlet />
-          </Box>
-        </Container>
-      </Main>
-    </Box>
+      
+      <Container maxWidth={false} disableGutters sx={{ height: "100vh", display: "flex" }}>
+        <Grid container sx={{ height: "100%" }}>
+          <Grid item sx={{ display: isVeryLargeScreen && sidebarOpen ? "block" : "none" }}>
+            <Sidebar open={sidebarOpen} onClose={handleDrawerToggle} />
+          </Grid>
+          <Grid item xs sx={{ display: "flex", flexDirection: "column" }}>
+            <Box sx={{ height: toolbarHeight, flexShrink: 0 }} />
+            <Box sx={{ flexGrow: 1, padding: "10px", backgroundColor: "background.default" }}>
+              <Outlet />
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+      
+      {(!isVeryLargeScreen || !sidebarOpen) && (
+        <Sidebar open={sidebarOpen} onClose={handleDrawerToggle} />
+      )}
+    </>
   );
 }

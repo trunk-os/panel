@@ -20,6 +20,8 @@ interface SparklineProps {
   showValues?: boolean;
   showBaseline?: boolean;
   minScale?: number; // Minimum Y-axis scale (useful for low-value metrics like CPU)
+  currentValue?: number; // Current value to overlay on sparkline
+  currentValueLabel?: string; // Label for current value (e.g., "67%", "2.4 GB")
 }
 
 export default function Sparkline({
@@ -32,6 +34,8 @@ export default function Sparkline({
   showValues = false,
   showBaseline = true,
   minScale,
+  currentValue,
+  currentValueLabel,
 }: SparklineProps) {
   const chartData = useMemo(() => {
     return data.map((value, index) => ({
@@ -130,6 +134,37 @@ export default function Sparkline({
           </AreaChart>
         </ResponsiveContainer>
       </Box>
+      
+      {/* Current value overlay */}
+      {currentValue !== undefined && currentValueLabel && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            backdropFilter: "blur(4px)",
+            borderRadius: 1,
+            px: 1,
+            py: 0.5,
+            pointerEvents: "none",
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "11px",
+              fontWeight: "bold",
+              color: color,
+              textAlign: "center",
+            }}
+          >
+            {currentValueLabel}
+          </Typography>
+        </Box>
+      )}
+      
       {showValues && (
         <Box
           sx={{

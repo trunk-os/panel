@@ -57,7 +57,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isVeryLargeScreen = useMediaQuery("(min-width: 1600px)");
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const handleAdvancedToggle = () => {
@@ -108,7 +108,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <Drawer
-      variant={isMobile ? "temporary" : "permanent"}
+      variant={isVeryLargeScreen ? "permanent" : "temporary"}
       open={open}
       onClose={onClose}
       sx={{
@@ -117,9 +117,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         "& .MuiDrawer-paper": {
           width: drawerWidth,
           boxSizing: "border-box",
-          marginTop: "64px",
+          top: "64px",
           height: "calc(100% - 64px)",
-          position: isMobile ? "fixed" : "absolute",
         },
       }}
     >
