@@ -10,21 +10,29 @@ import CenterForm from "../components/CenterForm.tsx";
 import defaultClient from "../lib/client.ts";
 
 async function performLogin(form) {
-  const client = defaultClient();
-  try {
-    const response = await client.login(
-      form.username.value,
-      form.password.value
-    );
-    return response.ok;
-  } catch (e) {
-    console.log(e);
-    return false;
-  }
+  const response = await defaultClient().login(
+    form.username.value,
+    form.password.value
+  );
+  return response.ok;
+}
+
+async function loggedIn() {
+  const response = await defaultClient().me();
+  return response.ok;
 }
 
 export default function Home() {
   let [loginState, setLoginState] = React.useState(null);
+  let [currentLogin, setCurrentLogin] = React.useState(false);
+
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      loggedIn().then((x) => setCurrentLogin(x));
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <CenterForm>
@@ -33,16 +41,24 @@ export default function Home() {
           id="login-form"
           autoComplete="off"
           onSubmit={(event) => {
-            performLogin(event.target.elements)
-              .then((success) => {
-                setLoginState(success);
-                event.preventDefault();
-              })
-              .catch((e) => console.log(e));
+            performLogin(event.target.elements).then((success) => {
+              setLoginState(success);
+            });
+            event.preventDefault();
           }}
         >
           {loginState === null || loginState === true ? (
-            <></>
+            <>
+              {currentLogin ? (
+                <div className="login-item">
+                  <Alert style={{ width: "100%" }} severity="success">
+                    You are currently logged in.
+                  </Alert>
+                </div>
+              ) : (
+                <></>
+              )}
+            </>
           ) : (
             <div className="login-item">
               <Alert style={{ width: "100%" }} severity="error">

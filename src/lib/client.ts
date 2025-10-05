@@ -34,8 +34,7 @@ export default function defaultClient(url) {
 const STORAGE_KEY_AUTHORIZATION = "authorization";
 
 const REQUEST_DEFAULTS = {
-  "content-type": "application/cbor",
-  accept: "application/cbor",
+  credentials: "include",
   cache: "no-store",
   mode: "cors",
 };
@@ -302,11 +301,14 @@ export class Client extends BaseClient {
     if (!ROUTES[route]) {
       return;
     }
-
     const method = ROUTES[route].method;
-
     let headers =
       method === "get" ? {} : { "content-type": "application/cbor" };
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location);
+      headers["origin"] = `${url.protocol}//${url.hostname}:${url.port}`;
+    }
 
     if (this.authorization) {
       headers["authorization"] = `Bearer ${this.authorization}`;
