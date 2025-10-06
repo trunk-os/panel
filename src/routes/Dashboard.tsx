@@ -11,6 +11,10 @@ import Typography from "@mui/material/Typography";
 import defaultClient from "../lib/client.ts";
 import defaultEffects from "../lib/effects.ts";
 
+function ServerStats(props) {
+  return <></>;
+}
+
 function ServiceStatus(props) {
   return props.show ? (
     <Alert
@@ -99,6 +103,31 @@ export default function Dashboard() {
               latency={charonLatency}
               label="Charon"
             />
+          </MenuItem>
+          <MenuItem
+            onClick={(event) => {
+              setMenuInfo({
+                status: menuInfo.status,
+                metrics: menuInfo.metrics ? false : event.currentTarget,
+              });
+            }}
+          >
+            Server Stats &gt;
+            <Menu
+              anchorEl={menuInfo.metrics || undefined}
+              onClose={() => {
+                setMenuInfo({ status: menuInfo.status, metrics: false });
+              }}
+              open={!!menuInfo.metrics}
+            >
+              <MenuItem
+                onClick={() => {
+                  setMenuInfo({ status: menuInfo.status, metrics: false });
+                }}
+              >
+                <ServerStats />
+              </MenuItem>
+            </Menu>
           </MenuItem>
         </Menu>
         <Button
