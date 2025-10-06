@@ -1,6 +1,7 @@
 import React from "react";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Logout from "@mui/icons-material/Logout";
@@ -8,11 +9,12 @@ import Toolbar from "@mui/material/Toolbar";
 import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
+import moment from "moment";
 
 import ServerStats from "../components/ServerStats.tsx";
 
 import defaultClient from "../lib/client.ts";
-import defaultEffects from "../lib/effects.ts";
+import { periodicCallWithState, defaultEffects } from "../lib/effects.ts";
 
 const MENU_STATS = [
   "uptime",
@@ -20,6 +22,48 @@ const MENU_STATS = [
   "load_average",
   "available_disk",
 ];
+
+function AuditLog(props) {
+  return (
+    <>
+      <div style={{ height: "1em" }} />
+      <table>
+        <thead>
+          <tr style={{ backgroundColor: "#eee" }}>
+            <th>Entry ID</th>
+            <th>Time</th>
+            <th>Activity</th>
+            <th>API Endpoint</th>
+            <th>User ID</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {props.log ? (
+            props.log.toReversed().map((entry, i) => (
+              <tr style={{ backgroundColor: i % 2 == 0 ? null : "#eee" }}>
+                <td>{entry.id}</td>
+                <td>{moment(entry.time).format("YYYY/MM/DD HH:MM:SS Z")}</td>
+                <td>{entry.entry}</td>
+                <td>{entry.endpoint}</td>
+                <td>{entry.user_id ? entry.user_id : "<none>"}</td>
+                <td>
+                  <Alert severity={entry.error ? "error" : "success"}>
+                    {entry.error ? `Error: ${entry.error}` : "Success"}
+                  </Alert>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <></>
+          )}
+        </tbody>
+      </table>
+      <div style={{ height: "1em" }} />
+      <div>Page: {props.page + 1}</div>
+    </>
+  );
+}
 
 function ServiceStatus(props) {
   return props.show ? (
@@ -37,22 +81,12 @@ function ServiceStatus(props) {
 export default function Dashboard() {
   let [menuInfo, setMenuInfo] = React.useState({ status: false });
   let [pingResults, setPingResults] = React.useState({});
+  let [auditLog, setAuditLog] = React.useState([]);
+  let [auditLogPage, setAuditLogPage] = React.useState(0);
 
   defaultEffects();
-
-  React.useEffect(() => {
-    const id = setInterval(() => {
-      defaultClient()
-        .ping()
-        .then((response) => {
-          if (response.ok && response.response) {
-            setPingResults(response.response);
-          }
-        });
-    }, 5000);
-
-    return () => clearInterval(id);
-  }, []);
+  periodicCallWithState("ping", null, setPingResults);
+  periodicCallWithState("audit_log", { page: auditLogPage }, setAuditLog);
 
   const buckleLatency =
     pingResults && pingResults.health && pingResults.health.buckle
@@ -65,68 +99,81 @@ export default function Dashboard() {
       : null;
 
   return (
-    <AppBar position="sticky">
-      <Toolbar>
-        <Typography>Trunk Control Panel</Typography>
-        <Button
-          variant="outlined"
-          style={{ color: "white" }}
-          onClick={(event) => {
-            setMenuInfo({
-              status: menuInfo.status ? false : event.currentTarget,
-            });
-          }}
-        >
-          Status
-        </Button>
-        <Menu
-          anchorEl={menuInfo.status || undefined}
-          onClose={() => {
-            setMenuInfo({ status: false });
-          }}
-          open={!!menuInfo.status}
-        >
-          <MenuItem
-            onClick={() => {
-              setMenuInfo({ status: false });
-            }}
-          >
-            <ServiceStatus
-              show={pingResults}
-              latency={buckleLatency}
-              label="Buckle"
-            />
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setMenuInfo({ status: false });
-            }}
-          >
-            <ServiceStatus
-              show={pingResults}
-              latency={charonLatency}
-              label="Charon"
-            />
-          </MenuItem>
-          <MenuItem
+    <>
+      <AppBar position="sticky">
+        <Toolbar>
+          <Typography>Trunk Control Panel</Typography>
+          <Button
+            variant="outlined"
+            style={{ color: "white" }}
             onClick={(event) => {
               setMenuInfo({
-                status: false,
+                status: menuInfo.status ? false : event.currentTarget,
               });
             }}
           >
-            <ServerStats stats={pingResults.info} include={MENU_STATS} />
-          </MenuItem>
-        </Menu>
-        <Button
-          startIcon={<Logout />}
-          variant="outlined"
-          style={{ color: "white" }}
-          href="/logout"
-        >
-          Logout
-        </Button>
-      </Toolbar>
-    </AppBar>
+            Status
+          </Button>
+          <Menu
+            anchorEl={menuInfo.status || undefined}
+            onClose={() => {
+              setMenuInfo({ status: false });
+            }}
+            open={!!menuInfo.status}
+          >
+            <MenuItem
+              onClick={() => {
+                setMenuInfo({ status: false });
+              }}
+            >
+              <ServiceStatus
+                show={pingResults}
+                latency={buckleLatency}
+                label="Buckle"
+              />
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMenuInfo({ status: false });
+              }}
+            >
+              <ServiceStatus
+                show={pingResults}
+                latency={charonLatency}
+                label="Charon"
+              />
+            </MenuItem>
+            <MenuItem
+              onClick={(event) => {
+                setMenuInfo({
+                  status: false,
+                });
+              }}
+            >
+              <ServerStats stats={pingResults.info} include={MENU_STATS} />
+            </MenuItem>
+          </Menu>
+          <Button
+            startIcon={<Logout />}
+            variant="outlined"
+            style={{ color: "white" }}
+            href="/logout"
+          >
+            Logout
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <Grid container spacing={2}>
+        <Grid size={2}></Grid>
+        <Grid size={8}>
+          <AuditLog
+            log={auditLog}
+            page={auditLogPage}
+            pageSetter={setAuditLogPage}
+          />
+        </Grid>
+        <Grid size={2}></Grid>
+      </Grid>
+    </>
   );
 }

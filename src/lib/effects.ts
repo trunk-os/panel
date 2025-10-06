@@ -1,7 +1,23 @@
 import { useEffect } from "react";
 import defaultClient from "./client.ts";
 
-export default function defaultEffects(inputs) {
+export function periodicCallWithState(call, args, setState) {
+  useEffect(() => {
+    const id = setInterval(() => {
+      defaultClient()
+        [call](args)
+        .then((response) => {
+          if (response.ok && response.response) {
+            setState(response.response);
+          }
+        });
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, []);
+}
+
+export function defaultEffects(inputs) {
   useEffect(() => {
     const id = setInterval(() => {
       defaultClient()

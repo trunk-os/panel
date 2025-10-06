@@ -32,7 +32,7 @@ const UNIT_CONVERTER = {
   available_memory: toGB,
   total_memory: toGB,
   cpus: (x) => x / 2,
-  cpu_usage: (x) => `${Math.floor(x)}%`,
+  cpu_usage: (x) => `${Math.floor(x)}%`, // FIXME: broken, probably needs fixed in buckle
   load_average: ([one, five, fifteen]) =>
     `[ 1m: ${one}, 5m: ${five}, 15m: ${fifteen} ]`,
   total_disk: toTB,
@@ -51,6 +51,7 @@ export default function ServerStats(props) {
           (props.include ? props.include : Object.keys(props.stats)).map(
             (k, i) => (
               <div
+                key={k}
                 style={{
                   padding: "0.5em",
                   backgroundColor: i % 2 == 0 ? null : "#eee",
