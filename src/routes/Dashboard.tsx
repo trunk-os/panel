@@ -17,7 +17,7 @@ export default function Dashboard() {
   defaultEffects();
 
   React.useEffect(() => {
-    const id = setInterval(async () => {
+    const id = setInterval(() => {
       defaultClient()
         .ping()
         .then((response) => {

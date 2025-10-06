@@ -8,11 +8,13 @@ export default function defaultEffects(inputs) {
         .me()
         .then((response) => {
           if (response.ok && !response.response) {
+            defaultClient.logout();
             // logged out, send to home
             window.location = "/";
           }
         });
     }, 5000);
+
     return () => clearInterval(id);
-  });
+  }, []);
 }
