@@ -3,7 +3,7 @@ import defaultClient from "./client.ts";
 
 export default function defaultEffects(inputs) {
   useEffect(() => {
-    const id = setTimeout(() => {
+    const id = setInterval(() => {
       defaultClient()
         .me()
         .then((response) => {
@@ -13,6 +13,6 @@ export default function defaultEffects(inputs) {
           }
         });
     }, 5000);
-    return () => clearTimeout(id);
+    return () => clearInterval(id);
   });
 }
