@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router";
+import { NavLink, redirect } from "react-router";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
@@ -18,20 +18,24 @@ async function performLogin(form) {
 }
 
 async function loggedIn() {
-  const response = await defaultClient().me();
-  return response.ok;
+  let response = {};
+
+  try {
+    response = await defaultClient().me();
+  } catch (e) {}
+
+  return response.response;
 }
 
 export default function Home() {
   let [loginState, setLoginState] = React.useState(null);
-  let [currentLogin, setCurrentLogin] = React.useState(false);
 
   React.useEffect(() => {
-    const id = setInterval(() => {
-      loggedIn().then((x) => setCurrentLogin(x));
-    }, 5000);
-
-    return () => clearInterval(id);
+    loggedIn().then((logged_in) => {
+      if (logged_in) {
+        window.location = "/dashboard";
+      }
+    });
   }, []);
 
   return (
@@ -43,29 +47,22 @@ export default function Home() {
           onSubmit={(event) => {
             performLogin(event.target.elements).then((success) => {
               setLoginState(success);
+
+              if (success) {
+                window.location = "/dashboard";
+              }
             });
             event.preventDefault();
           }}
         >
           {loginState === null || loginState === true ? (
-            <>
-              {currentLogin ? (
-                <div className="login-item">
-                  <Alert style={{ width: "100%" }} severity="success">
-                    You are currently logged in.
-                  </Alert>
-                </div>
-              ) : (
-                <></>
-              )}
-            </>
+            <></>
           ) : (
             <div className="login-item">
-              <Alert style={{ width: "100%" }} severity="error">
-                Invalid Login
-              </Alert>
+              <Alert severity="error">Invalid Login</Alert>
             </div>
           )}
+          <div style={{ height: "1em" }}></div>
           <div className="login-item">
             <TextField
               style={{ width: "100%" }}

@@ -121,10 +121,6 @@ class ClientMethods extends ClientStorage {
 
   logout() {
     this.clear_authorization();
-
-    if (typeof window !== "undefined") {
-      window.location.assign("/");
-    }
   }
 
   async login(username, password) {
