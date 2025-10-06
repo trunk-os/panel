@@ -5,10 +5,24 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Logout from "@mui/icons-material/Logout";
 import Toolbar from "@mui/material/Toolbar";
+import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
 
 import defaultClient from "../lib/client.ts";
 import defaultEffects from "../lib/effects.ts";
+
+function ServiceStatus(props) {
+  return props.show ? (
+    <Alert
+      style={{ width: "100%" }}
+      severity={props.latency !== null ? "success" : "error"}
+    >
+      {props.label}: {props.latency !== null ? `${props.latency}ms` : "down"}
+    </Alert>
+  ) : (
+    <></>
+  );
+}
 
 export default function Dashboard() {
   let [menuInfo, setMenuInfo] = React.useState({ status: false });
@@ -30,6 +44,18 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, []);
 
+  console.log(pingResults);
+
+  const buckleLatency =
+    pingResults && pingResults.health && pingResults.health.buckle
+      ? pingResults.health.buckle.latency
+      : null;
+
+  const charonLatency =
+    pingResults && pingResults.health && pingResults.health.charon
+      ? pingResults.health.charon.latency
+      : null;
+
   return (
     <AppBar position="sticky">
       <Toolbar>
@@ -38,35 +64,41 @@ export default function Dashboard() {
           variant="outlined"
           style={{ color: "white" }}
           onClick={(event) => {
-            menuInfo.status = event.currentTarget;
-            setMenuInfo(menuInfo);
+            setMenuInfo({
+              status: menuInfo.status ? false : event.currentTarget,
+            });
           }}
         >
           Status
         </Button>
         <Menu
-          anchorEl={menuInfo.status}
+          anchorEl={menuInfo.status || undefined}
           onClose={() => {
-            menuInfo.status = false;
-            setMenuInfo(menuInfo);
+            setMenuInfo({ status: false });
           }}
           open={!!menuInfo.status}
         >
           <MenuItem
             onClick={() => {
-              menuInfo.status = false;
-              setMenuInfo(menuInfo);
+              setMenuInfo({ status: false });
             }}
           >
-            hello
+            <ServiceStatus
+              show={pingResults}
+              latency={buckleLatency}
+              label="Buckle"
+            />
           </MenuItem>
           <MenuItem
             onClick={() => {
-              menuInfo.status = false;
-              setMenuInfo(menuInfo);
+              setMenuInfo({ status: false });
             }}
           >
-            there
+            <ServiceStatus
+              show={pingResults}
+              latency={charonLatency}
+              label="Charon"
+            />
           </MenuItem>
         </Menu>
         <Button
