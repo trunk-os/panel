@@ -17,25 +17,18 @@ async function performLogin(form) {
   return response.ok;
 }
 
-async function loggedIn() {
-  let response = {};
-
-  try {
-    response = await defaultClient().me();
-  } catch (e) {}
-
-  return response.response;
-}
-
 export default function Home() {
   let [loginState, setLoginState] = React.useState(null);
 
   React.useEffect(() => {
-    loggedIn().then((logged_in) => {
-      if (logged_in) {
-        window.location = "/dashboard";
-      }
-    });
+    defaultClient()
+      .me()
+      .then((response) => {
+        if (response.response) {
+          // user struct came back; we are logged in
+          window.location = "/dashboard";
+        }
+      });
   }, []);
 
   return (
