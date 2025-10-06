@@ -5,6 +5,7 @@ import {
   Router,
   Route,
 } from "react-router-dom";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 
 import Home from "./routes/Home.tsx";
 import CreateUser from "./routes/CreateUser.tsx";
@@ -23,5 +24,9 @@ const router = createBrowserRouter(
 );
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider theme={useTheme()}>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
 }
