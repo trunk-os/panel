@@ -12,6 +12,9 @@ export default function DashboardHome() {
       <div>
         <NavLink to="/dashboard/user">User Management</NavLink>
       </div>
+      <div>
+        <NavLink to="/dashboard/disk">Disk Management</NavLink>
+      </div>
     </CenterForm>
   );
 }

@@ -12,6 +12,7 @@ import CreateUser from "./routes/CreateUser.tsx";
 import Logout from "./routes/Logout.tsx";
 import DashboardHome from "./routes/DashboardHome.tsx";
 import UserManagement from "./routes/UserManagement.tsx";
+import DiskManagement from "./routes/DiskManagement.tsx";
 
 import Dashboard from "./components/Dashboard.tsx";
 import AuditLog from "./components/AuditLog.tsx";
@@ -54,6 +55,14 @@ export default function App() {
             <Dashboard>
               <div style={{ height: "2em" }} />
               <CreateUser />
+            </Dashboard>
+          }
+        />
+        <Route
+          path="dashboard/disk"
+          element={
+            <Dashboard>
+              <DiskManagement />
             </Dashboard>
           }
         />

@@ -12,53 +12,59 @@ export default function Table(props) {
         }}
       >
         <h1 style={{ textAlign: "center" }}>{props.title}</h1>
-        <div
-          style={{
-            minHeight: "3em",
-            float: "left",
-          }}
-        >
-          <Button
-            onClick={() => {
-              let page = props.page - 1;
-              if (page < 0) {
-                page = 0;
-              }
+        {props.page ? (
+          <>
+            <div
+              style={{
+                minHeight: "3em",
+                float: "left",
+              }}
+            >
+              <Button
+                onClick={() => {
+                  let page = props.page - 1;
+                  if (page < 0) {
+                    page = 0;
+                  }
 
-              if (page != props.page) {
-                props.setPage(page);
-              }
-            }}
-          >
-            &lt;&lt;
-          </Button>
-        </div>
-        <div style={{ minHeight: "3em", float: "right" }}>
-          <Button
-            onClick={() => {
-              let page = props.page + 1;
-              if (page < 0) {
-                page = 0;
-              }
+                  if (page != props.page) {
+                    props.setPage(page);
+                  }
+                }}
+              >
+                &lt;&lt;
+              </Button>
+            </div>
+            <div style={{ minHeight: "3em", float: "right" }}>
+              <Button
+                onClick={() => {
+                  let page = props.page + 1;
+                  if (page < 0) {
+                    page = 0;
+                  }
 
-              if (page != props.page) {
-                props.setPage(page);
-              }
-            }}
-            disabled={props.list.length < (props.perPage || 20)}
-          >
-            &gt;&gt;
-          </Button>
-        </div>
-        <div
-          style={{
-            minHeight: "3em",
-            marginTop: "1em",
-            textAlign: "center",
-          }}
-        >
-          Page: {props.page + 1}
-        </div>
+                  if (page != props.page) {
+                    props.setPage(page);
+                  }
+                }}
+                disabled={props.list.length < (props.perPage || 20)}
+              >
+                &gt;&gt;
+              </Button>
+            </div>
+            <div
+              style={{
+                minHeight: "3em",
+                marginTop: "1em",
+                textAlign: "center",
+              }}
+            >
+              Page: {props.page + 1}
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
       </div>
       <div style={{ height: "1em" }} />
       <table style={{ width: "100%" }}>

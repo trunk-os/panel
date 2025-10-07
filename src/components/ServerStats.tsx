@@ -2,16 +2,8 @@ import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import moment from "moment";
-import { sprintf } from "sprintf-js";
 import HumanElapsed from "human-elapsed";
-
-function toGB(m) {
-  return `${sprintf("%0.02f", m / (1024 * 1024 * 1024))}GB`;
-}
-
-function toTB(m) {
-  return `${sprintf("%0.02f", m / (1024 * 1024 * 1024 * 1024))}TB`;
-}
+import { toTB, toGB } from "../lib/units.ts";
 
 const STAT_TO_NAME = {
   uptime: "System Uptime",
