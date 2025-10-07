@@ -1,7 +1,7 @@
 - [x] machine stats
 - [x] audit log
-- [ ] user list
-- [ ] user ops
+- [x] user list
+- [x] user ops
 - [ ] disk list
 - [ ] disk ops
 - [ ] package ops
