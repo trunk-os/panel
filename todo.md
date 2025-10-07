@@ -1,8 +1,8 @@
-- machine stats
-- audit log
-- user list
-- user ops
-- disk list
-- disk ops
-- package ops
-- systemd ops
+- [x] machine stats
+- [x] audit log
+- [ ] user list
+- [ ] user ops
+- [ ] disk list
+- [ ] disk ops
+- [ ] package ops
+- [ ] systemd ops
