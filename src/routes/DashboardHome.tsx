@@ -4,7 +4,7 @@ import CenterForm from "../components/CenterForm.tsx";
 
 export default function DashboardHome() {
   return (
-    <CenterForm>
+    <CenterForm ceiling="medium">
       <div>Welcome to the Dashboard!</div>
       <div>
         <NavLink to="/dashboard/log">Audit Log</NavLink>
