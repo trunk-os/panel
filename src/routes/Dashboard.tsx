@@ -26,8 +26,64 @@ const MENU_STATS = [
 function AuditLog(props) {
   return (
     <>
+      <div
+        style={{
+          marginLeft: "auto",
+          marginRight: "auto",
+          height: "3em",
+          //border: "1px solid black",
+          width: "30%",
+        }}
+      >
+        <div
+          style={{
+            minHeight: "3em",
+            float: "left",
+          }}
+        >
+          <Button
+            onClick={() => {
+              let page = props.page - 1;
+              if (page < 0) {
+                page = 0;
+              }
+
+              if (page != props.page) {
+                props.pageSetter(page);
+              }
+            }}
+          >
+            &lt;&lt;
+          </Button>
+        </div>
+        <div style={{ minHeight: "3em", float: "right" }}>
+          <Button
+            onClick={() => {
+              let page = props.page + 1;
+              if (page < 0) {
+                page = 0;
+              }
+
+              if (page != props.page) {
+                props.pageSetter(page);
+              }
+            }}
+          >
+            &gt;&gt;
+          </Button>
+        </div>
+        <div
+          style={{
+            minHeight: "3em",
+            marginTop: "1em",
+            textAlign: "center",
+          }}
+        >
+          Page: {props.page + 1}
+        </div>
+      </div>
       <div style={{ height: "1em" }} />
-      <table>
+      <table style={{ width: "100%" }}>
         <thead>
           <tr style={{ backgroundColor: "#eee" }}>
             <th>Entry ID</th>
@@ -62,8 +118,6 @@ function AuditLog(props) {
           )}
         </tbody>
       </table>
-      <div style={{ height: "1em" }} />
-      <div>Page: {props.page + 1}</div>
     </>
   );
 }
@@ -86,8 +140,12 @@ export default function Dashboard() {
   let [auditLogPage, setAuditLogPage] = React.useState(0);
 
   defaultEffects();
-  periodicCallWithState("ping", null, setPingResults);
-  periodicCallWithState("audit_log", { page: auditLogPage }, setAuditLog);
+  periodicCallWithState("ping", setPingResults, {});
+  periodicCallWithState("audit_log", setAuditLog, {
+    args: { page: auditLogPage },
+    requiredState: [auditLogPage],
+    defaultState: [],
+  });
 
   const buckleLatency =
     pingResults && pingResults.health && pingResults.health.buckle

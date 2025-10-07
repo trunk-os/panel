@@ -1,13 +1,19 @@
 import { useEffect } from "react";
 import defaultClient from "./client.ts";
 
-export function periodicCallWithState(call, args, setState) {
+export function periodicCallWithState(
+  call,
+  setState,
+  { args, requiredState, defaultState }
+) {
   const clientCall = () => {
     defaultClient()
       [call](args)
       .then((response) => {
-        if (response.ok && response.response) {
+        if (response.ok) {
           setState(response.response);
+        } else if (!response.ok && defaultState) {
+          setState(defaultState);
         }
       });
   };
@@ -16,7 +22,7 @@ export function periodicCallWithState(call, args, setState) {
     const id = setInterval(clientCall, 5000);
     clientCall();
     return () => clearInterval(id);
-  }, []);
+  }, requiredState || []);
 }
 
 export function defaultEffects(inputs) {
