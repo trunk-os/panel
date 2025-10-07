@@ -9,11 +9,11 @@ import {
 
 import Home from "./routes/Home.tsx";
 import CreateUser from "./routes/CreateUser.tsx";
-import Dashboard from "./routes/Dashboard.tsx";
 import Logout from "./routes/Logout.tsx";
 import DashboardHome from "./routes/DashboardHome.tsx";
 import UserManagement from "./routes/UserManagement.tsx";
 
+import Dashboard from "./components/Dashboard.tsx";
 import AuditLog from "./components/AuditLog.tsx";
 import CenterForm from "./components/CenterForm.tsx";
 
