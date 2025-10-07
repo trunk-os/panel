@@ -9,6 +9,8 @@ import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import CloseIcon from "@mui/icons-material/Close";
+import CheckIcon from "@mui/icons-material/Check";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 import Table from "../components/Table.tsx";
 import CenterForm from "../components/CenterForm.tsx";
@@ -60,6 +62,7 @@ function EditUser(props) {
 
             if (response.ok) {
               props.setUser({});
+              props.setForceRefresh(props.forceRefresh + 1);
             }
           });
           event.preventDefault();
@@ -147,10 +150,12 @@ function EditUser(props) {
 export default function UserManagement(props) {
   let [userList, setUserList] = React.useState([]);
   let [editUser, setEditUser] = React.useState({});
+  let [activeIcon, setActiveIcon] = React.useState(null);
+  let [forceRefresh, setForceRefresh] = React.useState(0);
 
   periodicCallWithState("list_users", setUserList, {
     args: { page: props.page },
-    requiredState: [props.page],
+    requiredState: [props.page, forceRefresh],
     defaultState: [],
   });
 
@@ -169,12 +174,18 @@ export default function UserManagement(props) {
               }
             />
             <CardContent>
-              <EditUser user={editUser} setUser={setEditUser} />
+              <EditUser
+                forceRefresh={forceRefresh}
+                setForceRefresh={setForceRefresh}
+                user={editUser}
+                setUser={setEditUser}
+              />
             </CardContent>
           </Card>
         </CenterForm>
       </Modal>
       <Table
+        title="User List"
         page={props.page}
         setPage={props.setPage}
         list={userList}
@@ -185,8 +196,17 @@ export default function UserManagement(props) {
           "Phone",
           "E-Mail",
           "Edit User",
+          "Active",
         ]}
-        values={["id", "username", "realname", "phone", "email", "edit_user"]}
+        values={[
+          "id",
+          "username",
+          "realname",
+          "phone",
+          "email",
+          "edit_user",
+          "deleted_at",
+        ]}
         transforms={{
           realname: (x) => (x ? x : "<none>"),
           phone: (x) => (x ? x : "<none>"),
@@ -196,6 +216,43 @@ export default function UserManagement(props) {
               Edit User
             </Button>
           ),
+          deleted_at: (x, record) => {
+            let tag = <CheckIcon color="success" />;
+            if (x) {
+              tag = <CancelIcon color="error" />;
+              if (activeIcon === record.id) {
+                tag = <CheckIcon color="success" />;
+              }
+            } else {
+              if (activeIcon === record.id) {
+                tag = <CancelIcon color="error" />;
+              }
+            }
+
+            return (
+              <IconButton
+                onMouseOut={() => setActiveIcon(null)}
+                onMouseOver={() => setActiveIcon(record.id)}
+                onClick={(event) => {
+                  if (x) {
+                    defaultClient()
+                      .reactivate_user(record.id)
+                      .then((x) => x);
+                  } else {
+                    defaultClient()
+                      .remove_user(record.id)
+                      .then((x) => x);
+                  }
+
+                  setForceRefresh(forceRefresh + 1);
+                  setActiveIcon(null);
+                  event.preventDefault();
+                }}
+              >
+                {tag}
+              </IconButton>
+            );
+          },
         }}
       />
     </>
