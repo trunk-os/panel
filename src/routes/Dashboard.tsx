@@ -8,7 +8,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Logout from "@mui/icons-material/Logout";
 import Toolbar from "@mui/material/Toolbar";
 import Alert from "@mui/material/Alert";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 
 import AuditLog from "../components/AuditLog.tsx";
@@ -57,7 +56,7 @@ export default function Dashboard() {
     <>
       <AppBar position="sticky">
         <Toolbar>
-          <Typography>Trunk Control Panel</Typography>
+          <h4>Trunk Control Panel</h4>
           <Button
             variant="outlined"
             style={{ color: "white" }}
