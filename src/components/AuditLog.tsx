@@ -18,8 +18,8 @@ export default function AuditLog(props) {
     <Table
       title="Audit Log"
       page={props.page}
-      pageSetter={props.pageSetter}
-      log={auditLog}
+      setPage={props.setPage}
+      list={auditLog}
       headings={[
         "Entry ID",
         "Time",

@@ -44,7 +44,7 @@ export default function App() {
           path="dashboard/user"
           element={
             <Dashboard>
-              <UserManagement />
+              <UserManagement page={page} setPage={setPage} />
             </Dashboard>
           }
         />
@@ -61,7 +61,7 @@ export default function App() {
           path="dashboard/log"
           element={
             <Dashboard>
-              <AuditLog page={page} pageSetter={setPage} />
+              <AuditLog page={page} setPage={setPage} />
             </Dashboard>
           }
         />

@@ -35,7 +35,7 @@ export function defaultEffects(inputs) {
         .me()
         .then((response) => {
           if (response.ok && !response.response) {
-            defaultClient.logout();
+            defaultClient().logout();
             // logged out, send to home
             navigate("/");
           }

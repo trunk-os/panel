@@ -26,7 +26,7 @@ export default function Table(props) {
               }
 
               if (page != props.page) {
-                props.pageSetter(page);
+                props.setPage(page);
               }
             }}
           >
@@ -42,7 +42,7 @@ export default function Table(props) {
               }
 
               if (page != props.page) {
-                props.pageSetter(page);
+                props.setPage(page);
               }
             }}
           >
@@ -64,18 +64,22 @@ export default function Table(props) {
         <thead>
           <tr style={{ backgroundColor: "#eee" }}>
             {props.headings.map((x) => (
-              <th key={x}>{x}</th>
+              <th style={{ border: "1px solid black" }} key={x}>
+                {x}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {props.log.toReversed().map((entry, i) => (
+          {props.list.map((entry, i) => (
             <tr
               key={entry[props.entryKey || "id"]}
-              style={{ backgroundColor: i % 2 == 0 ? null : "#eee" }}
+              style={{
+                backgroundColor: i % 2 == 0 ? null : "#eee",
+              }}
             >
               {props.values.map((x) => (
-                <td key={x}>
+                <td style={{ textAlign: "center" }} key={x}>
                   {props.transforms[x]
                     ? props.transforms[x](entry[x])
                     : entry[x]}
