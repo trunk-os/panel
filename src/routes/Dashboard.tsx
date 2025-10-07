@@ -1,4 +1,5 @@
 import React from "react";
+import moment from "moment";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -9,7 +10,6 @@ import Toolbar from "@mui/material/Toolbar";
 import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import moment from "moment";
 
 import ServerStats from "../components/ServerStats.tsx";
 
