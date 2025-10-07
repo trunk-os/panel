@@ -33,7 +33,10 @@ export default function AuditLog(props) {
         time: (t) => moment(t).format("YYYY/MM/DD HH:MM:SS Z"),
         user_id: (id) => (id ? id : "<none>"),
         error: (error) => (
-          <Alert severity={error ? "error" : "success"}>
+          <Alert
+            style={{ textAlign: "justify" }}
+            severity={error ? "error" : "success"}
+          >
             {error ? `Error: ${error}` : "Success"}
           </Alert>
         ),
