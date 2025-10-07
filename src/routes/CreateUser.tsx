@@ -123,7 +123,7 @@ export default function Create() {
         <div style={{ height: "2em" }}></div>
         <div className="login-item">
           <Button style={{ width: "100%" }} variant="contained" type="submit">
-            Create New User
+            Create a New User
           </Button>
         </div>
       </form>

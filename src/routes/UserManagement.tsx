@@ -154,7 +154,7 @@ export default function UserManagement(props) {
   let [forceRefresh, setForceRefresh] = React.useState(0);
 
   periodicCallWithState("list_users", setUserList, {
-    args: { page: props.page },
+    args: { page: props.page, per_page: 10 },
     requiredState: [props.page, forceRefresh],
     defaultState: [],
   });
@@ -184,10 +184,16 @@ export default function UserManagement(props) {
           </Card>
         </CenterForm>
       </Modal>
+      <div style={{ textAlign: "center", marginTop: "2em" }}>
+        <Button href="/dashboard/user/create" variant="contained">
+          Create a New User
+        </Button>
+      </div>
       <Table
         title="User List"
         page={props.page}
         setPage={props.setPage}
+        perPage={10}
         list={userList}
         headings={[
           "User ID",

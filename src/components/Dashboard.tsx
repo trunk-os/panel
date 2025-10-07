@@ -55,7 +55,13 @@ export default function Dashboard(props) {
     <>
       <AppBar position="sticky">
         <Toolbar>
-          <h4>Trunk Control Panel</h4>
+          <Button
+            style={{ color: "white" }}
+            variant="outlined"
+            href="/dashboard"
+          >
+            Home
+          </Button>
           <Button
             variant="outlined"
             style={{ color: "white" }}
@@ -79,14 +85,17 @@ export default function Dashboard(props) {
                 setMenuInfo({ status: false });
               }}
             >
-              <ServiceStatus latency={buckleLatency} label="Buckle" />
+              <ServiceStatus
+                latency={buckleLatency}
+                label="System Controller"
+              />
             </MenuItem>
             <MenuItem
               onClick={() => {
                 setMenuInfo({ status: false });
               }}
             >
-              <ServiceStatus latency={charonLatency} label="Charon" />
+              <ServiceStatus latency={charonLatency} label="Package Manager" />
             </MenuItem>
             <MenuItem
               onClick={(event) => {

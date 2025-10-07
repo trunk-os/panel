@@ -45,6 +45,7 @@ export default function Table(props) {
                 props.setPage(page);
               }
             }}
+            disabled={props.list.length < (props.perPage || 20)}
           >
             &gt;&gt;
           </Button>
