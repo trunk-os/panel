@@ -11,6 +11,8 @@ import Home from "./routes/Home.tsx";
 import CreateUser from "./routes/CreateUser.tsx";
 import Dashboard from "./routes/Dashboard.tsx";
 import Logout from "./routes/Logout.tsx";
+import DashboardHome from "./routes/DashboardHome.tsx";
+import UserManagement from "./routes/UserManagement.tsx";
 
 import AuditLog from "./components/AuditLog.tsx";
 import CenterForm from "./components/CenterForm.tsx";
@@ -34,7 +36,15 @@ export default function App() {
           path="dashboard"
           element={
             <Dashboard>
-              <div>Welcome to the Dashboard!</div>
+              <DashboardHome />
+            </Dashboard>
+          }
+        />
+        <Route
+          path="dashboard/user"
+          element={
+            <Dashboard>
+              <UserManagement />
             </Dashboard>
           }
         />
