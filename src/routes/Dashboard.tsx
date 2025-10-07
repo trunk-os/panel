@@ -41,7 +41,10 @@ function AuditLog(props) {
         <tbody>
           {props.log ? (
             props.log.toReversed().map((entry, i) => (
-              <tr style={{ backgroundColor: i % 2 == 0 ? null : "#eee" }}>
+              <tr
+                key={entry.id}
+                style={{ backgroundColor: i % 2 == 0 ? null : "#eee" }}
+              >
                 <td>{entry.id}</td>
                 <td>{moment(entry.time).format("YYYY/MM/DD HH:MM:SS Z")}</td>
                 <td>{entry.entry}</td>
@@ -66,15 +69,13 @@ function AuditLog(props) {
 }
 
 function ServiceStatus(props) {
-  return props.show ? (
+  return (
     <Alert
       style={{ width: "100%" }}
       severity={props.latency !== null ? "success" : "error"}
     >
       {props.label}: {props.latency !== null ? `${props.latency}ms` : "down"}
     </Alert>
-  ) : (
-    <></>
   );
 }
 
@@ -126,22 +127,14 @@ export default function Dashboard() {
                 setMenuInfo({ status: false });
               }}
             >
-              <ServiceStatus
-                show={pingResults}
-                latency={buckleLatency}
-                label="Buckle"
-              />
+              <ServiceStatus latency={buckleLatency} label="Buckle" />
             </MenuItem>
             <MenuItem
               onClick={() => {
                 setMenuInfo({ status: false });
               }}
             >
-              <ServiceStatus
-                show={pingResults}
-                latency={charonLatency}
-                label="Charon"
-              />
+              <ServiceStatus latency={charonLatency} label="Charon" />
             </MenuItem>
             <MenuItem
               onClick={(event) => {
