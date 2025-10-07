@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import defaultClient from "./client.ts";
+import { useNavigate } from "react-router";
 
 export function periodicCallWithState(
   call,
@@ -26,6 +27,8 @@ export function periodicCallWithState(
 }
 
 export function defaultEffects(inputs) {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const clientCall = () => {
       defaultClient()
@@ -34,7 +37,7 @@ export function defaultEffects(inputs) {
           if (response.ok && !response.response) {
             defaultClient.logout();
             // logged out, send to home
-            window.location = "/";
+            navigate("/");
           }
         });
     };

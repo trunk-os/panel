@@ -301,11 +301,6 @@ export class Client extends BaseClient {
     let headers =
       method === "get" ? {} : { "content-type": "application/cbor" };
 
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location);
-      headers["origin"] = `${url.protocol}//${url.hostname}:${url.port}`;
-    }
-
     if (this.authorization) {
       headers["authorization"] = `Bearer ${this.authorization}`;
     }

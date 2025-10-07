@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, redirect } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
@@ -20,13 +20,15 @@ async function performLogin(form) {
 export default function Home() {
   let [loginState, setLoginState] = React.useState(null);
 
+  let navigate = useNavigate();
+
   React.useEffect(() => {
     defaultClient()
       .me()
       .then((response) => {
         if (response.response) {
           // user struct came back; we are logged in
-          window.location = "/dashboard";
+          navigate("/dashboard");
         }
       });
   }, []);
@@ -42,7 +44,7 @@ export default function Home() {
               setLoginState(success);
 
               if (success) {
-                window.location = "/dashboard";
+                navigate("/dashboard");
               }
             });
             event.preventDefault();
