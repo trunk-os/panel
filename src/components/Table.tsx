@@ -81,7 +81,7 @@ export default function Table(props) {
               {props.values.map((x) => (
                 <td style={{ textAlign: "center" }} key={x}>
                   {props.transforms[x]
-                    ? props.transforms[x](entry[x])
+                    ? props.transforms[x](entry[x], entry)
                     : entry[x]}
                 </td>
               ))}
