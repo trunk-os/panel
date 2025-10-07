@@ -34,10 +34,9 @@ function ServiceStatus(props) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard(props) {
   let [menuInfo, setMenuInfo] = React.useState({ status: false });
   let [pingResults, setPingResults] = React.useState({});
-  let [auditLogPage, setAuditLogPage] = React.useState(0);
 
   defaultEffects();
   periodicCallWithState("ping", setPingResults, {});
@@ -111,9 +110,7 @@ export default function Dashboard() {
       </AppBar>
       <Grid container spacing={2}>
         <Grid size={2}></Grid>
-        <Grid size={8}>
-          <AuditLog page={auditLogPage} pageSetter={setAuditLogPage} />
-        </Grid>
+        <Grid size={8}>{props.children}</Grid>
         <Grid size={2}></Grid>
       </Grid>
     </>
