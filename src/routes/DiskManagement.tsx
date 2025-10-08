@@ -14,7 +14,7 @@ import defaultClient from "../lib/client.ts";
 import { periodicCallWithState } from "../lib/effects.ts";
 import { toGB } from "../lib/units.ts";
 
-export default function DiskManagment(props) {
+export default function DiskManagement(props) {
   let [zfsFilter, setZfsFilter] = React.useState(null);
   let [zfsList, setZfsList] = React.useState([]);
   let [menuInfo, setMenuInfo] = React.useState({ status: false });
