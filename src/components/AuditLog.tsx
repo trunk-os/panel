@@ -30,7 +30,14 @@ export default function AuditLog(props) {
       ]}
       values={["id", "time", "entry", "endpoint", "user_id", "error"]}
       transforms={{
-        time: (t) => moment(t).format("YYYY/MM/DD HH:MM:SS Z"),
+        id: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
+        time: (t) => (
+          <div style={{ textAlign: "left" }}>
+            {moment(t).format("YYYY/MM/DD HH:MM:SS")}
+          </div>
+        ),
+        entry: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
+        endpoint: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         user_id: (id) => (id ? id : "<none>"),
         error: (error) => (
           <Alert
