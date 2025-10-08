@@ -10,6 +10,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 
+import ConfirmDialog from "../components/ConfirmDialog.tsx";
 import AuditLog from "../components/AuditLog.tsx";
 import ServerStats from "../components/ServerStats.tsx";
 
@@ -53,6 +54,9 @@ export default function Dashboard(props) {
 
   return (
     <>
+      <ConfirmDialog open={true} title="Hello">
+        All glory to the hypnotoad
+      </ConfirmDialog>
       <AppBar position="sticky">
         <Toolbar>
           <Button

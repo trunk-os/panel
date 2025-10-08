@@ -20,7 +20,6 @@ export default function DiskManagment(props) {
 
   periodicCallWithState("zfs_list", setZfsList, {
     args: zfsFilter,
-    requiredState: [],
     defaultState: [],
   });
 
@@ -74,7 +73,15 @@ export default function DiskManagment(props) {
           size: toGB,
           used: toGB,
           delete: (_, record) => (
-            <IconButton color="error">
+            <IconButton
+              color="error"
+              onClick={(event) => {
+                defaultClient()
+                  .zfs_destroy(record.name)
+                  .then((x) => x);
+                event.preventDefault();
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           ),
