@@ -60,6 +60,7 @@ export default function Table(props) {
                     props.setPage(page);
                   }
                 }}
+                disabled={props.page == 0}
               >
                 &lt;&lt;
               </Button>
