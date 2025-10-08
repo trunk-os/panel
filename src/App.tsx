@@ -13,6 +13,7 @@ import Logout from "./routes/Logout.tsx";
 import DashboardHome from "./routes/DashboardHome.tsx";
 import UserManagement from "./routes/UserManagement.tsx";
 import DiskManagement from "./routes/DiskManagement.tsx";
+import SystemManagement from "./routes/SystemManagement.tsx";
 
 import Dashboard from "./components/Dashboard.tsx";
 import AuditLog from "./components/AuditLog.tsx";
@@ -63,6 +64,14 @@ export default function App() {
           element={
             <Dashboard>
               <DiskManagement />
+            </Dashboard>
+          }
+        />
+        <Route
+          path="dashboard/system"
+          element={
+            <Dashboard>
+              <SystemManagement />
             </Dashboard>
           }
         />
