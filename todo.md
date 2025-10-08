@@ -2,7 +2,14 @@
 - [x] audit log
 - [x] user list
 - [x] user ops
-- [ ] disk list
+- [x] disk list
 - [ ] disk ops
+    - [x] delete
+    - [ ] create
+        - [ ] volume
+        - [ ] dataset
+    - [ ] modify
+        - [ ] volume
+        - [ ] dataset
 - [ ] package ops
 - [ ] systemd ops
