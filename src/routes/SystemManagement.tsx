@@ -27,14 +27,6 @@ export default function SystemManagement(props) {
         })),
   });
 
-  unitList.sort((a, b) =>
-    a.name.toLowerCase() > b.name.toLowerCase()
-      ? 1
-      : a.name.toLowerCase() === b.name.toLowerCase()
-        ? 0
-        : -1
-  );
-
   return (
     <Table
       title="Services"

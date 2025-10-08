@@ -1,6 +1,33 @@
+import React from "react";
 import Button from "@mui/material/Button";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+
+function sort(a, b, key) {
+  if (typeof a[key] === "string") {
+    return a[key].toLowerCase() > b[key].toLowerCase()
+      ? 1
+      : a[key].toLowerCase() === b[key].toLowerCase()
+        ? 0
+        : -1;
+  } else {
+    return a[key] > b[key] ? 1 : a[key] === b[key] ? 0 : -1;
+  }
+}
 
 export default function Table(props) {
+  let list = props.list;
+  let [sortInfo, setSortInfo] = React.useState({
+    key: props.values[0],
+    direction: "descending",
+  });
+
+  list.sort((a, b) =>
+    (sortInfo.direction || "descending") === "descending"
+      ? sort(a, b, sortInfo.key)
+      : sort(b, a, sortInfo.key)
+  );
+
   return (
     <>
       <div
@@ -70,9 +97,41 @@ export default function Table(props) {
       <table style={{ width: "100%" }}>
         <thead>
           <tr style={{ backgroundColor: "#eee" }}>
-            {props.headings.map((x) => (
-              <th style={{ border: "1px solid black" }} key={x}>
+            {props.headings.map((x, i) => (
+              <th
+                style={{ cursor: "pointer", border: "1px solid black" }}
+                key={x}
+                onClick={() => {
+                  if (sortInfo.key === props.values[i]) {
+                    if (sortInfo.direction === "descending") {
+                      setSortInfo({
+                        key: sortInfo.key,
+                        direction: "ascending",
+                      });
+                    } else {
+                      setSortInfo({
+                        key: sortInfo.key,
+                        direction: "descending",
+                      });
+                    }
+                  } else {
+                    setSortInfo({
+                      key: props.values[i],
+                      direction: "descending",
+                    });
+                  }
+                }}
+              >
                 {x}
+                {sortInfo.key === props.values[i] ? (
+                  sortInfo.direction === "descending" ? (
+                    <ArrowDropDownIcon style={{ float: "right" }} />
+                  ) : (
+                    <ArrowDropUpIcon style={{ float: "right" }} />
+                  )
+                ) : (
+                  <></>
+                )}
               </th>
             ))}
           </tr>

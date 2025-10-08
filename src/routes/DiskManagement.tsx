@@ -108,7 +108,7 @@ function DiskProperties(props) {
       <div style={{ height: "2em" }}></div>
       <div className="login-item">
         <Button style={{ width: "100%" }} variant="contained" type="submit">
-          Modify Disk
+          {props.create ? "Create" : "Modify"} Disk
         </Button>
       </div>
     </form>
@@ -126,8 +126,6 @@ export default function DiskManagement(props) {
     args: zfsFilter,
     defaultState: [],
   });
-
-  zfsList.sort((a, b) => (a.name > b.name ? 1 : a.name === b.name ? 0 : -1));
 
   return (
     <div>
