@@ -14,6 +14,7 @@ import DashboardHome from "./routes/DashboardHome.tsx";
 import UserManagement from "./routes/UserManagement.tsx";
 import DiskManagement from "./routes/DiskManagement.tsx";
 import SystemManagement from "./routes/SystemManagement.tsx";
+import PackageManagement from "./routes/PackageManagement.tsx";
 
 import Dashboard from "./components/Dashboard.tsx";
 import AuditLog from "./components/AuditLog.tsx";
@@ -72,6 +73,14 @@ export default function App() {
           element={
             <Dashboard>
               <SystemManagement />
+            </Dashboard>
+          }
+        />
+        <Route
+          path="dashboard/packages"
+          element={
+            <Dashboard>
+              <PackageManagement />
             </Dashboard>
           }
         />
