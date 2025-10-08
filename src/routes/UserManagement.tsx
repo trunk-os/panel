@@ -14,6 +14,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 
 import Table from "../components/Table.tsx";
 import CenterForm from "../components/CenterForm.tsx";
+import ConfirmDialog from "../components/ConfirmDialog.tsx";
 
 import defaultClient from "../lib/client.ts";
 import { periodicCallWithState } from "../lib/effects.ts";
@@ -152,6 +153,9 @@ export default function UserManagement(props) {
   let [editUser, setEditUser] = React.useState({});
   let [activeIcon, setActiveIcon] = React.useState(null);
   let [forceRefresh, setForceRefresh] = React.useState(0);
+  let [confirmUserActivate, setConfirmUserActivate] = React.useState({
+    open: false,
+  });
 
   periodicCallWithState("list_users", setUserList, {
     args: { page: props.page, per_page: 10 },
@@ -184,6 +188,33 @@ export default function UserManagement(props) {
           </Card>
         </CenterForm>
       </Modal>
+      <ConfirmDialog
+        open={confirmUserActivate.open}
+        title={
+          "Confirm User " + confirmUserActivate.deleted
+            ? "Re-Activation"
+            : "De-activation"
+        }
+        onSuccess={(event) => {
+          if (confirmUserActivate.deleted) {
+            defaultClient()
+              .reactivate_user(confirmUserActivate.id)
+              .then((x) => x);
+          } else {
+            defaultClient()
+              .remove_user(confirmUserActivate.id)
+              .then((x) => x);
+          }
+        }}
+        onComplete={() => {
+          setForceRefresh(forceRefresh + 1);
+          setActiveIcon(null);
+          setConfirmUserActivate({ open: false });
+        }}
+      >
+        {confirmUserActivate.deleted ? "Re-Activate" : "De-activate"} User{" "}
+        <code>{confirmUserActivate.username || "<none>"}</code>?
+      </ConfirmDialog>
       <div style={{ textAlign: "center", marginTop: "2em" }}>
         <Button href="/dashboard/user/create" variant="contained">
           Create a New User
@@ -240,18 +271,12 @@ export default function UserManagement(props) {
                 onMouseOut={() => setActiveIcon(null)}
                 onMouseOver={() => setActiveIcon(record.id)}
                 onClick={(event) => {
-                  if (x) {
-                    defaultClient()
-                      .reactivate_user(record.id)
-                      .then((x) => x);
-                  } else {
-                    defaultClient()
-                      .remove_user(record.id)
-                      .then((x) => x);
-                  }
-
-                  setForceRefresh(forceRefresh + 1);
-                  setActiveIcon(null);
+                  setConfirmUserActivate({
+                    open: true,
+                    id: record.id,
+                    username: record.username,
+                    deleted: x,
+                  });
                   event.preventDefault();
                 }}
               >
