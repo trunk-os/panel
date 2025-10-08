@@ -3,13 +3,6 @@
 - [x] user list
 - [x] user ops
 - [x] disk list
-- [ ] disk ops
-    - [x] delete
-    - [ ] create
-        - [ ] volume
-        - [ ] dataset
-    - [ ] modify
-        - [ ] volume
-        - [ ] dataset
+- [x] disk ops
 - [ ] package ops
 - [ ] systemd ops
