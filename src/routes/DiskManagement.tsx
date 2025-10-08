@@ -7,7 +7,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 
 import Table from "../components/Table.tsx";
-import CenterForm from "../components/CenterForm.tsx";
 import ConfirmDialog from "../components/ConfirmDialog.tsx";
 
 import defaultClient from "../lib/client.ts";
@@ -43,51 +42,60 @@ export default function DiskManagement(props) {
       >
         Delete Volume <code>{confirmName}</code>?
       </ConfirmDialog>
-      <CenterForm ceiling="high">
-        <Button
-          color="success"
-          variant="contained"
-          onClick={(event) => {
-            setMenuInfo({
-              status: menuInfo.status ? false : event.currentTarget,
-            });
-          }}
-        >
-          <AddIcon />
-          New Storage
-        </Button>
-        <Menu
-          anchorEl={menuInfo.status || undefined}
-          onClose={() => {
-            setMenuInfo({ status: false });
-          }}
-          open={!!menuInfo.status}
-        >
-          <MenuItem
-            onClick={() => {
-              setMenuInfo({ status: false });
-            }}
-          >
-            <Button>Dataset</Button>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setMenuInfo({ status: false });
-            }}
-          >
-            <Button>Volume</Button>
-          </MenuItem>
-        </Menu>
-      </CenterForm>
       <Table
-        title="Storage List"
+        title={
+          <>
+            <Button
+              color="success"
+              variant="contained"
+              onClick={(event) => {
+                setMenuInfo({
+                  status: menuInfo.status ? false : event.currentTarget,
+                });
+              }}
+            >
+              <AddIcon />
+              Storage
+            </Button>
+            <Menu
+              anchorEl={menuInfo.status || undefined}
+              onClose={() => {
+                setMenuInfo({ status: false });
+              }}
+              open={!!menuInfo.status}
+            >
+              <MenuItem
+                onClick={() => {
+                  setMenuInfo({ status: false });
+                }}
+              >
+                <Button>Dataset</Button>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setMenuInfo({ status: false });
+                }}
+              >
+                <Button>Volume</Button>
+              </MenuItem>
+            </Menu>
+          </>
+        }
         list={zfsList}
-        headings={["Name", "Kind", "Total Size", "Used Size", "Delete"]}
-        values={["name", "kind", "size", "used", "delete"]}
+        headings={[
+          "Name",
+          "Kind",
+          "Total Size",
+          "Used Size",
+          "Modify",
+          "Delete",
+        ]}
+        values={["name", "kind", "size", "used", "modify", "delete"]}
         transforms={{
           name: (x) => <div style={{ textAlign: "justify" }}>{x}</div>,
           size: toGB,
           used: toGB,
+          modify: (_, record) => <Button variant="outlined">Modify</Button>,
           delete: (_, record) => (
             <IconButton
               color="error"
