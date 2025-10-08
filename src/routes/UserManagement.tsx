@@ -249,7 +249,7 @@ export default function UserManagement(props) {
           email: (x) => (x ? x : "<none>"),
           edit_user: (_, record) => (
             <Button variant="outlined" onClick={() => setEditUser(record)}>
-              Edit User
+              Edit
             </Button>
           ),
           deleted_at: (x, record) => {

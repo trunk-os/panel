@@ -4,7 +4,9 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 function sort(a, b, key) {
-  if (typeof a[key] === "string") {
+  if (a[key] === null || b[key] === null) {
+    return 0;
+  } else if (typeof a[key] === "string" && typeof b[key] === "string") {
     return a[key].toLowerCase() > b[key].toLowerCase()
       ? 1
       : a[key].toLowerCase() === b[key].toLowerCase()
