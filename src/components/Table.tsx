@@ -12,7 +12,7 @@ export default function Table(props) {
         }}
       >
         <h1 style={{ textAlign: "center" }}>{props.title}</h1>
-        {props.page ? (
+        {props.page !== undefined ? (
           <>
             <div
               style={{
