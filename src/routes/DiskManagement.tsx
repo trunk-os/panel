@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import Table from "../components/Table.tsx";
 import CenterForm from "../components/CenterForm.tsx";
+import ConfirmDialog from "../components/ConfirmDialog.tsx";
 
 import defaultClient from "../lib/client.ts";
 import { periodicCallWithState } from "../lib/effects.ts";
@@ -17,6 +18,7 @@ export default function DiskManagment(props) {
   let [zfsFilter, setZfsFilter] = React.useState(null);
   let [zfsList, setZfsList] = React.useState([]);
   let [menuInfo, setMenuInfo] = React.useState({ status: false });
+  let [confirmName, setConfirmName] = React.useState(null);
 
   periodicCallWithState("zfs_list", setZfsList, {
     args: zfsFilter,
@@ -27,6 +29,20 @@ export default function DiskManagment(props) {
 
   return (
     <div>
+      <ConfirmDialog
+        open={confirmName}
+        title="Confirm Volume Deletion?"
+        onSuccess={(event) => {
+          defaultClient()
+            .zfs_destroy(confirmName)
+            .then((x) => x);
+        }}
+        onComplete={() => {
+          setConfirmName(null);
+        }}
+      >
+        Delete Volume <code>{confirmName}</code>?
+      </ConfirmDialog>
       <CenterForm ceiling="high">
         <Button
           color="success"
@@ -76,9 +92,7 @@ export default function DiskManagment(props) {
             <IconButton
               color="error"
               onClick={(event) => {
-                defaultClient()
-                  .zfs_destroy(record.name)
-                  .then((x) => x);
+                setConfirmName(record.name);
                 event.preventDefault();
               }}
             >

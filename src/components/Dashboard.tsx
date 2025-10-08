@@ -54,9 +54,6 @@ export default function Dashboard(props) {
 
   return (
     <>
-      <ConfirmDialog open={true} title="Hello">
-        All glory to the hypnotoad
-      </ConfirmDialog>
       <AppBar position="sticky">
         <Toolbar>
           <Button

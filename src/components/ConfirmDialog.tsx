@@ -9,10 +9,8 @@ import CheckIcon from "@mui/icons-material/Check";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 export default function ConfirmDialog(props) {
-  let [used, setUsed] = React.useState(false);
-
   return (
-    <Dialog open={!used ? props.open : false}>
+    <Dialog open={props.open}>
       <DialogTitle>{props.title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{props.children}</DialogContentText>
@@ -25,7 +23,10 @@ export default function ConfirmDialog(props) {
               props.onSuccess(event);
             }
 
-            setUsed(true);
+            if (props.onComplete) {
+              props.onComplete(event);
+            }
+
             event.preventDefault();
           }}
         >
@@ -38,7 +39,10 @@ export default function ConfirmDialog(props) {
               props.onCancel(event);
             }
 
-            setUsed(true);
+            if (props.onComplete) {
+              props.onComplete(event);
+            }
+
             event.preventDefault();
           }}
         >
