@@ -5,4 +5,4 @@
 - [x] disk list
 - [x] disk ops
 - [ ] package ops
-- [ ] systemd ops
+- [x] systemd ops
