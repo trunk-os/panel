@@ -210,7 +210,7 @@ export default function DiskManagement(props) {
         ]}
         values={["name", "kind", "size", "used", "modify", "delete"]}
         transforms={{
-          name: (x) => <div style={{ textAlign: "justify" }}>{x}</div>,
+          name: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
           size: toGB,
           used: toGB,
           modify: (_, record) => (

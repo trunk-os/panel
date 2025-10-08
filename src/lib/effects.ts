@@ -5,14 +5,20 @@ import { useNavigate } from "react-router";
 export function periodicCallWithState(
   call,
   setState,
-  { args, requiredState, defaultState }
+  { args, requiredState, defaultState, transform }
 ) {
   const clientCall = () => {
     defaultClient()
       [call](args)
       .then((response) => {
         if (response.ok) {
-          setState(response.response);
+          let payload = response.response;
+
+          if (transform) {
+            payload = transform(payload);
+          }
+
+          setState(payload);
         } else if (!response.ok && defaultState) {
           setState(defaultState);
         }

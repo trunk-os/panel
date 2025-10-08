@@ -34,7 +34,7 @@ export default function AuditLog(props) {
         user_id: (id) => (id ? id : "<none>"),
         error: (error) => (
           <Alert
-            style={{ textAlign: "justify" }}
+            style={{ textAlign: "left" }}
             severity={error ? "error" : "success"}
           >
             {error ? `Error: ${error}` : "Success"}
