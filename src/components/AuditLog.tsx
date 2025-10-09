@@ -17,6 +17,7 @@ export default function AuditLog(props) {
   return (
     <Table
       title="Audit Log"
+      sort={"ascending"}
       page={props.page}
       setPage={props.setPage}
       list={auditLog}

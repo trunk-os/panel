@@ -21,7 +21,7 @@ export default function Table(props) {
   let list = props.list;
   let [sortInfo, setSortInfo] = React.useState({
     key: props.values[0],
-    direction: "descending",
+    direction: props.sort || "descending",
   });
 
   list.sort((a, b) =>
