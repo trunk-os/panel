@@ -42,6 +42,7 @@ integrationTest("ensure all failing calls yield problemdetails", async () => {
     let response = await client[method]();
     expect(!!response).toBe(true);
     expect(response.ok).toBe(false);
+    expect(!!response.error_detail).toBe(true);
   });
 });
 
