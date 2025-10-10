@@ -27,6 +27,7 @@ const DEFAULT_PACKAGE_STATE = {
 
 export default function PackageManagement(props) {
   let [packageList, setPackageList] = React.useState([]);
+  let [refreshList, setRefreshList] = React.useState(0);
   let [installPackage, setInstallPackage] = React.useState(
     DEFAULT_PACKAGE_STATE
   );
@@ -35,6 +36,7 @@ export default function PackageManagement(props) {
   );
 
   periodicCallWithState("list_packages", setPackageList, {
+    requiredState: [refreshList],
     defaultState: [],
     transform: (response) =>
       response.map((x) => ({
@@ -43,8 +45,6 @@ export default function PackageManagement(props) {
         installed: x.installed,
       })),
   });
-
-  console.log(installQuestions);
 
   return (
     <>
@@ -92,6 +92,8 @@ export default function PackageManagement(props) {
                   );
                 }
               });
+
+            setRefreshList(refreshList + 1);
           } else {
             defaultClient()
               .get_prompts(
@@ -99,10 +101,30 @@ export default function PackageManagement(props) {
                 installPackage.package.version
               )
               .then((response) => {
-                Object.assign(installQuestions, {
-                  questions: response.response,
-                });
-                setInstallQuestions(installQuestions);
+                if (response.ok) {
+                  // NOTE: careful attention is needed to avoid opening the dialog before the
+                  // questions are available. See comments in the return JSX below.
+                  if (response.response.length === 0) {
+                    defaultClient()
+                      .install_package(
+                        installQuestions.package.name,
+                        installQuestions.package.version
+                      )
+                      .then((response) => {
+                        setInstallQuestions(DEFAULT_QUESTION_STATE);
+                        setRefreshList(refreshList + 1);
+                      });
+                  } else {
+                    Object.assign(installQuestions, {
+                      // we want to make sure to open here otherwise the main loop
+                      // auto-install trigger will get executed.
+                      // shitty side effects, I know, but not sure what to do better here.
+                      open: true,
+                      questions: response.response,
+                    });
+                    setInstallQuestions(installQuestions);
+                  }
+                }
               });
 
             defaultClient()
@@ -118,14 +140,6 @@ export default function PackageManagement(props) {
               package: installPackage.package,
             });
             setInstallQuestions(installQuestions);
-            /*
-            defaultClient()
-              .install_package(
-                installPackage.package.name,
-                installPackage.package.version
-              )
-              .then(handleResponse);
-              */
           }
         }}
         onComplete={() => {
