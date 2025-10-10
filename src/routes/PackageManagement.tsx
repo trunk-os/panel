@@ -1,5 +1,8 @@
 import React from "react";
 import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
@@ -20,9 +23,15 @@ const DEFAULT_QUESTION_STATE = {
   package: {},
   questions: [],
 };
+
 const DEFAULT_PACKAGE_STATE = {
   open: false,
   package: {},
+};
+
+const DEFAULT_INSTALL_STATUS = {
+  status: null,
+  error_detail: {},
 };
 
 export default function PackageManagement(props) {
@@ -33,6 +42,9 @@ export default function PackageManagement(props) {
   );
   let [installQuestions, setInstallQuestions] = React.useState(
     DEFAULT_QUESTION_STATE
+  );
+  let [installStatus, setInstallStatus] = React.useState(
+    DEFAULT_INSTALL_STATUS
   );
 
   periodicCallWithState("list_packages", setPackageList, {
@@ -62,7 +74,55 @@ export default function PackageManagement(props) {
                 </IconButton>
               }
             />
-            <CardContent></CardContent>
+            <CardContent>
+              <form
+                id="install-package-questions"
+                autoComplete="off"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                }}
+              >
+                {installStatus.status !== null ? (
+                  <>
+                    <div className="login-item">
+                      <Alert
+                        severity={installStatus.status ? "success" : "error"}
+                      >
+                        {installStatus.status
+                          ? "Package Installed Successfully."
+                          : `[ERROR]: ${installStatus.error_detail.title}: ${installStatus.error_detail.detail}`}
+                      </Alert>
+                    </div>
+                    <div style={{ height: "1em" }}></div>
+                  </>
+                ) : (
+                  <></>
+                )}
+                {installQuestions.questions.map((x, i) => (
+                  <>
+                    <div className="login-item">
+                      <InputLabel>{x.question}</InputLabel>
+                      <TextField style={{ width: "100%" }} id={x.template} />
+                    </div>
+                    {i == installQuestions.questions.length - 1 ? (
+                      <div style={{ height: "1em" }}></div>
+                    ) : (
+                      <></>
+                    )}
+                  </>
+                ))}
+                <div style={{ height: "2em" }}></div>
+                <div className="login-item">
+                  <Button
+                    style={{ width: "100%" }}
+                    variant="contained"
+                    type="submit"
+                  >
+                    Install Package
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
           </Card>
         </CenterForm>
       </Modal>
