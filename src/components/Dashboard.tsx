@@ -22,6 +22,7 @@ const MENU_STATS = [
   "available_memory",
   "load_average",
   "available_disk",
+  "cpu_usage",
 ];
 
 function ServiceStatus(props) {
@@ -81,6 +82,16 @@ export default function Dashboard(props) {
             }}
             open={!!menuInfo.status}
           >
+            <MenuItem
+              onClick={() => {
+                setMenuInfo({ status: false });
+              }}
+            >
+              <ServiceStatus
+                latency={pingResults.health ? 0 : null}
+                label="API Backend"
+              />
+            </MenuItem>
             <MenuItem
               onClick={() => {
                 setMenuInfo({ status: false });
