@@ -37,15 +37,15 @@ const DEFAULT_INSTALL_STATUS = {
 export default function PackageManagement(props) {
   let [packageList, setPackageList] = React.useState([]);
   let [refreshList, setRefreshList] = React.useState(0);
-  let [installPackage, setInstallPackage] = React.useState(
-    DEFAULT_PACKAGE_STATE
-  );
-  let [installQuestions, setInstallQuestions] = React.useState(
-    DEFAULT_QUESTION_STATE
-  );
-  let [installStatus, setInstallStatus] = React.useState(
-    DEFAULT_INSTALL_STATUS
-  );
+  let [installPackage, setInstallPackage] = React.useState({
+    ...DEFAULT_PACKAGE_STATE,
+  });
+  let [installQuestions, setInstallQuestions] = React.useState({
+    ...DEFAULT_QUESTION_STATE,
+  });
+  let [installStatus, setInstallStatus] = React.useState({
+    ...DEFAULT_INSTALL_STATUS,
+  });
 
   periodicCallWithState("list_packages", setPackageList, {
     requiredState: [refreshList],
@@ -68,7 +68,11 @@ export default function PackageManagement(props) {
               subheader={`${installQuestions.package.name}, version ${installQuestions.package.version}`}
               action={
                 <IconButton
-                  onClick={() => setInstallQuestions(DEFAULT_QUESTION_STATE)}
+                  onClick={() => {
+                    setInstallQuestions({ ...DEFAULT_QUESTION_STATE });
+                    setInstallStatus({ ...DEFAULT_INSTALL_STATUS });
+                    setInstallPackage({ ...DEFAULT_PACKAGE_STATE });
+                  }}
                 >
                   <CloseIcon />
                 </IconButton>
@@ -79,6 +83,47 @@ export default function PackageManagement(props) {
                 id="install-package-questions"
                 autoComplete="off"
                 onSubmit={(event) => {
+                  const questions = installQuestions.questions;
+                  let responses = [];
+
+                  questions.forEach((question) => {
+                    let found = questions.find(
+                      (x) => x.template == question.template
+                    );
+                    if (found) {
+                      responses.push({
+                        template: found.template,
+                        input: {
+                          // FIXME probably need more done here for input type
+                          [found.input_type]:
+                            event.target.elements[found.template].value,
+                        },
+                      });
+                    }
+                  });
+
+                  // // FIXME: value validations need to go here
+                  defaultClient()
+                    .set_responses(installQuestions.package.name, responses)
+                    .then((response) => {
+                      // FIXME error handling
+                      if (response.ok) {
+                        defaultClient()
+                          .install_package(
+                            installQuestions.package.name,
+                            installQuestions.package.version
+                          )
+                          .then((response) => {
+                            if (response.ok) {
+                              setInstallQuestions({
+                                ...DEFAULT_QUESTION_STATE,
+                              });
+                              setInstallStatus({ ...DEFAULT_INSTALL_STATUS });
+                              setInstallPackage({ ...DEFAULT_PACKAGE_STATE });
+                            }
+                          });
+                      }
+                    });
                   event.preventDefault();
                 }}
               >
@@ -171,7 +216,9 @@ export default function PackageManagement(props) {
                         installQuestions.package.version
                       )
                       .then((response) => {
-                        setInstallQuestions(DEFAULT_QUESTION_STATE);
+                        setInstallQuestions({ ...DEFAULT_QUESTION_STATE });
+                        setInstallStatus({ ...DEFAULT_INSTALL_STATUS });
+                        setInstallPackage({ ...DEFAULT_PACKAGE_STATE });
                         setRefreshList(refreshList + 1);
                       });
                   } else {
@@ -203,7 +250,7 @@ export default function PackageManagement(props) {
           }
         }}
         onComplete={() => {
-          setInstallPackage(DEFAULT_PACKAGE_STATE);
+          setInstallPackage({ ...DEFAULT_PACKAGE_STATE });
         }}
       >
         {installPackage.package.installed ? "Uninstall" : "Install"}{" "}
