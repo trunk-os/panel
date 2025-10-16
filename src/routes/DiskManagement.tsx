@@ -4,6 +4,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Menu from "@mui/material/Menu";
@@ -11,6 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
 
 import Table from "../components/Table.tsx";
 import ConfirmDialog from "../components/ConfirmDialog.tsx";
@@ -19,19 +21,16 @@ import defaultClient from "../lib/client.ts";
 import { periodicCallWithState } from "../lib/effects.ts";
 import { toGB } from "../lib/units.ts";
 
-async function modifyDisk({ name, create, kind, size }) {
+async function modifyDisk({ name, newName, create, kind, size }) {
   const client = defaultClient();
 
   switch (kind) {
     case "Dataset": {
+      size = size > 0 ? size : null;
       if (create) {
-        return await client.zfs_create_dataset(name, size > 0 ? size : null);
+        return await client.zfs_create_dataset(name, size);
       } else {
-        return await client.zfs_modify_dataset(
-          name,
-          name,
-          size > 0 ? size : null
-        );
+        return await client.zfs_modify_dataset(name, newName, size);
       }
       break;
     }
@@ -39,7 +38,7 @@ async function modifyDisk({ name, create, kind, size }) {
       if (create) {
         return await client.zfs_create_volume(name, size);
       } else {
-        return await client.zfs_modify_volume(name, name, size);
+        return await client.zfs_modify_volume(name, newName, size);
       }
       break;
     }
@@ -58,7 +57,10 @@ function DiskProperties(props) {
       autoComplete="off"
       onSubmit={(event) => {
         modifyDisk({
-          name: event.target.elements.name.value,
+          name: props.disk.name
+            ? props.disk.name
+            : event.target.elements.name.value,
+          newName: event.target.elements.name.value,
           create: props.create,
           kind: props.kind,
           size: parseInt(event.target.elements.size.value),
@@ -94,7 +96,6 @@ function DiskProperties(props) {
           label="Disk Name"
           id="name"
           defaultValue={props.disk ? props.disk.name : null}
-          disabled={!props.create}
         />
       </div>
       <div style={{ height: "1em" }}></div>
@@ -131,8 +132,25 @@ export default function DiskManagement(props) {
     <div>
       <Dialog open={editDisk.open}>
         <DialogTitle>
-          {(editDisk.create ? "Create" : "Modify") + " Disk"}
+          <div>
+            <div
+              style={{
+                float: "left",
+                marginTop: "0.25em",
+                verticalAlign: "bottom",
+              }}
+            >
+              {(editDisk.create ? "Create" : "Modify") + " Disk"}
+            </div>
+            <IconButton
+              style={{ float: "right" }}
+              onClick={() => setEditDisk({ open: false })}
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
         </DialogTitle>
+        <DialogActions></DialogActions>
         <DialogContent>
           <DiskProperties
             setDiskProperties={setEditDisk}
