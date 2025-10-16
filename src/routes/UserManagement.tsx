@@ -7,6 +7,8 @@ import IconButton from "@mui/material/IconButton";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
+import Grid from "@mui/material/Grid";
+
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -83,59 +85,64 @@ function EditUser(props) {
         ) : (
           <></>
         )}
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="User Name"
-            id="username"
-            defaultValue={props.user.username}
-          />
-        </div>
-        <div style={{ height: "1em" }}></div>
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="Password"
-            id="password"
-            type="password"
-          />
-        </div>
-        <div style={{ height: "1em" }}></div>
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="Repeat Password"
-            id="password2"
-            type="password"
-          />
-        </div>
-        <div style={{ height: "1em" }}></div>
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="[Optional] Real Name"
-            id="realname"
-            defaultValue={props.user.realname}
-          />
-        </div>
-        <div style={{ height: "1em" }}></div>
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="[Optional] Phone Number"
-            id="phone"
-            defaultValue={props.user.phone}
-          />
-        </div>
-        <div style={{ height: "1em" }}></div>
-        <div className="login-item">
-          <TextField
-            style={{ width: "100%" }}
-            label="[Optional] E-Mail Address"
-            id="email"
-            defaultValue={props.user.email}
-          />
-        </div>
+        <Grid container spacing={2}>
+          <Grid size={6}>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="User Name"
+                id="username"
+                defaultValue={props.user.username}
+              />
+            </div>
+            <div style={{ height: "1em" }}></div>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="Password"
+                id="password"
+                type="password"
+              />
+            </div>
+            <div style={{ height: "1em" }}></div>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="Repeat Password"
+                id="password2"
+                type="password"
+              />
+            </div>
+          </Grid>
+          <Grid size={6}>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="[Optional] Real Name"
+                id="realname"
+                defaultValue={props.user.realname}
+              />
+            </div>
+            <div style={{ height: "1em" }}></div>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="[Optional] Phone Number"
+                id="phone"
+                defaultValue={props.user.phone}
+              />
+            </div>
+            <div style={{ height: "1em" }}></div>
+            <div className="login-item">
+              <TextField
+                style={{ width: "100%" }}
+                label="[Optional] E-Mail Address"
+                id="email"
+                defaultValue={props.user.email}
+              />
+            </div>
+          </Grid>
+        </Grid>
         <div style={{ height: "2em" }}></div>
         <div className="login-item">
           <Button style={{ width: "100%" }} variant="contained" type="submit">
@@ -165,7 +172,7 @@ export default function UserManagement(props) {
   return (
     <>
       <Modal open={editUser && editUser.id}>
-        <CenterForm>
+        <CenterForm ceiling="medium">
           <Card>
             <CardHeader
               title="Edit a User"

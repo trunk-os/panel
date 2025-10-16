@@ -6,7 +6,7 @@ export default function CenterForm(props) {
 
   switch (props.ceiling) {
     case "high":
-      height = "1em";
+      height = "0.5em";
       break;
     case "medium":
       height = "5em";
@@ -18,12 +18,12 @@ export default function CenterForm(props) {
 
   return (
     <Grid container spacing={2}>
-      <Grid size={4} />
-      <Grid size={4}>
+      <Grid size={3} />
+      <Grid size={6}>
         <div style={{ height }} />
         <div>{props.children}</div>
       </Grid>
-      <Grid size={4} />
+      <Grid size={3} />
     </Grid>
   );
 }
