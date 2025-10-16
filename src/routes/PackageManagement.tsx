@@ -7,6 +7,7 @@ import Modal from "@mui/material/Modal";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
+import Tooltip from "@mui/material/Tooltip";
 import CheckIcon from "@mui/icons-material/Check";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CloseIcon from "@mui/icons-material/Close";
@@ -268,26 +269,29 @@ export default function PackageManagement(props) {
           version: (x) => (
             <div style={{ marginRight: "1em", textAlign: "right" }}>{x}</div>
           ),
-          installed: (x, record) =>
-            x ? (
-              <IconButton
-                onClick={(event) => {
-                  setInstallPackage({ open: true, package: record });
-                  event.preventDefault();
-                }}
-              >
-                <CheckIcon style={{ color: "green" }} />
-              </IconButton>
-            ) : (
-              <IconButton
-                onClick={(event) => {
-                  setInstallPackage({ open: true, package: record });
-                  event.preventDefault();
-                }}
-              >
-                <CancelIcon style={{ color: "red" }} />
-              </IconButton>
-            ),
+          installed: (x, record) => (
+            <Tooltip title={"Click to " + (x ? "Uninstall" : "Install")}>
+              {x ? (
+                <IconButton
+                  onClick={(event) => {
+                    setInstallPackage({ open: true, package: record });
+                    event.preventDefault();
+                  }}
+                >
+                  <CheckIcon style={{ color: "green" }} />
+                </IconButton>
+              ) : (
+                <IconButton
+                  onClick={(event) => {
+                    setInstallPackage({ open: true, package: record });
+                    event.preventDefault();
+                  }}
+                >
+                  <CancelIcon style={{ color: "red" }} />
+                </IconButton>
+              )}
+            </Tooltip>
+          ),
         }}
       />
     </>
