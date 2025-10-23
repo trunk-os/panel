@@ -34,7 +34,7 @@ export default function AuditLog(props) {
         id: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         time: (t) => (
           <div style={{ textAlign: "left" }}>
-            {moment(t).format("YYYY/MM/DD HH:MM:SS")}
+            {moment(t).format("YYYY/MM/DD HH:MM:ss")}
           </div>
         ),
         entry: (x) => <div style={{ textAlign: "left" }}>{x}</div>,

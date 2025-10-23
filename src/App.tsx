@@ -16,9 +16,9 @@ import DiskManagement from "./routes/DiskManagement.tsx";
 import SystemManagement from "./routes/SystemManagement.tsx";
 import PackageManagement from "./routes/PackageManagement.tsx";
 import SystemDashboard from "./routes/SystemDashboard.tsx";
+import AuditLog from "./routes/AuditLog.tsx";
 
 import Dashboard from "./components/Dashboard.tsx";
-import AuditLog from "./components/AuditLog.tsx";
 import CenterForm from "./components/CenterForm.tsx";
 
 export default function App() {
