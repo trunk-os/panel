@@ -40,14 +40,20 @@ export default function AuditLog(props) {
         entry: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         endpoint: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         user_id: (id) => (id ? id : "<none>"),
-        error: (error) => (
-          <Alert
-            style={{ textAlign: "left" }}
-            severity={error ? "error" : "success"}
-          >
-            {error ? `Error: ${error}` : "Success"}
-          </Alert>
-        ),
+        error: (error) => {
+          let errorMsg = JSON.parse(error || "{}");
+
+          return (
+            <Alert
+              style={{ textAlign: "left" }}
+              severity={error ? "error" : "success"}
+            >
+              {error
+                ? `${errorMsg.title || "Unknown"}: ${errorMsg.detail || "no detail for error"}`
+                : "Success"}
+            </Alert>
+          );
+        },
       }}
     />
   );
