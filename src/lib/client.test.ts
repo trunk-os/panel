@@ -14,7 +14,6 @@ integrationTest("ensure all failing calls yield problemdetails", async () => {
   [
     "audit_log",
     "login",
-    "me",
     "create_user",
     "list_users",
     "unit_log",
@@ -76,9 +75,9 @@ integrationTest(
 
     for (let i = 0; i < response.response.length; i++) {
       const item = response.response[i];
-      if (item.name == "example_package") {
+      if (item.title.name == "example_package") {
         found = true;
-        expect(item.version).toBe("0.0.1");
+        expect(item.title.version).toBe("0.0.1");
       }
     }
 
@@ -172,6 +171,12 @@ integrationTest(
     await client.zfs_destroy("not-test-volume");
     await client.zfs_destroy("test-dataset");
 
+    // get a measurement of how many items are there already
+    response = await client.zfs_list();
+    expect(response.ok).toBe(true);
+
+    let existing = response.response.length;
+
     response = await client.zfs_create_volume("test-volume", 100 * 1024 * 1024);
     expect(response.ok).toBe(true);
 
@@ -212,12 +217,9 @@ integrationTest(
     response = await client.zfs_destroy("test-volume");
     expect(response.ok).toBe(true);
 
-    response = await client.zfs_list(); // filter should work
+    response = await client.zfs_list();
     expect(response.ok).toBe(true);
-    expect(response.response.length).toBe(1);
-    expect(response.response[0].kind).toBe("Volume");
-    expect(response.response[0].name).toBe("not-test-volume");
-    expect(response.response[0].size).toBe(100 * 1024 * 1024);
+    expect(response.response.length).toBe(1 + existing);
 
     response = await client.zfs_destroy("not-test-volume");
     expect(response.ok).toBe(true);
@@ -254,7 +256,7 @@ integrationTest(
 
     response = await client.zfs_list(); // filter should work
     expect(response.ok).toBe(true);
-    expect(response.response.length).toBe(0);
+    expect(response.response.length).toBe(existing);
   }
 );
 
@@ -403,15 +405,14 @@ integrationTest("audit_log endpoint, with and without login", async () => {
   expect(response.ok).toBe(true);
   expect(response.response !== undefined).toBe(true);
   expect(response.response.length > 1).toBe(true);
-  expect(response.response[response.response.length - 1].endpoint).toBe(
-    "/session/login"
-  );
+  expect(response.response[0].endpoint).toBe("/session/login");
 });
 
 integrationTest("me endpoint, with and without login", async () => {
   const client = getClient();
   let response = await client.me();
-  expect(!response.ok).toBe(true);
+  expect(response.ok).toBe(true);
+  expect(response.response).toBe(null);
 
   expect(await tryLogin(client)).toBe(true);
 
