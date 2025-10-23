@@ -15,6 +15,7 @@ import UserManagement from "./routes/UserManagement.tsx";
 import DiskManagement from "./routes/DiskManagement.tsx";
 import SystemManagement from "./routes/SystemManagement.tsx";
 import PackageManagement from "./routes/PackageManagement.tsx";
+import SystemDashboard from "./routes/SystemDashboard.tsx";
 
 import Dashboard from "./components/Dashboard.tsx";
 import AuditLog from "./components/AuditLog.tsx";
@@ -89,6 +90,14 @@ export default function App() {
           element={
             <Dashboard>
               <AuditLog page={page} setPage={setPage} />
+            </Dashboard>
+          }
+        />
+        <Route
+          path="dashboard/system_dashboard"
+          element={
+            <Dashboard well={0.125}>
+              <SystemDashboard />
             </Dashboard>
           }
         />

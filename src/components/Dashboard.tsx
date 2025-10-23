@@ -130,9 +130,9 @@ export default function Dashboard(props) {
         </Toolbar>
       </AppBar>
       <Grid container spacing={2}>
-        <Grid size={2}></Grid>
-        <Grid size={8}>{props.children}</Grid>
-        <Grid size={2}></Grid>
+        <Grid size={props.well || 2}></Grid>
+        <Grid size={12 - (props.well || 2) * 2}>{props.children}</Grid>
+        <Grid size={props.well || 2}></Grid>
       </Grid>
     </>
   );

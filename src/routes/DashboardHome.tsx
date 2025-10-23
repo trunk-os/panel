@@ -21,6 +21,11 @@ export default function DashboardHome() {
       <div>
         <NavLink to="/dashboard/packages">Package Management</NavLink>
       </div>
+      <div>
+        <NavLink to="/dashboard/system_dashboard">
+          System Stats/Dashboard
+        </NavLink>
+      </div>
     </CenterForm>
   );
 }
