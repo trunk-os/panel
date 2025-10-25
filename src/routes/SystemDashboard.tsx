@@ -1,7 +1,7 @@
 export default function SystemDashboard() {
-  let host = "localhost:3000";
+  let host = "localhost:3030";
   if (typeof window !== "undefined") {
-    host = `${window.location.hostname}:3000`;
+    host = `${window.location.hostname}:3030`;
   }
 
   return (

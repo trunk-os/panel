@@ -17,7 +17,7 @@ export default function AuditLog(props) {
   return (
     <Table
       title="Audit Log"
-      sort={"ascending"}
+      sort="ascending"
       page={props.page}
       setPage={props.setPage}
       list={auditLog}
@@ -26,10 +26,10 @@ export default function AuditLog(props) {
         "Time",
         "Activity",
         "API Endpoint",
-        "User ID",
+        "User",
         "Status",
       ]}
-      values={["id", "time", "entry", "endpoint", "user_id", "error"]}
+      values={["id", "time", "entry", "endpoint", "user", "error"]}
       transforms={{
         id: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         time: (t) => (
@@ -39,18 +39,21 @@ export default function AuditLog(props) {
         ),
         entry: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
         endpoint: (x) => <div style={{ textAlign: "left" }}>{x}</div>,
-        user_id: (id) => (id ? id : "<none>"),
+        user: (user) => (user ? user.username : "<none>"),
         error: (error) => {
-          let errorMsg = JSON.parse(error || "{}");
+          let msg = "Success";
+
+          if (error) {
+            let errorMsg = JSON.parse(error);
+            msg = `${errorMsg.title || "Unknown"}: ${errorMsg.detail || "no detail for error"}`;
+          }
 
           return (
             <Alert
               style={{ textAlign: "left" }}
               severity={error ? "error" : "success"}
             >
-              {error
-                ? `${errorMsg.title || "Unknown"}: ${errorMsg.detail || "no detail for error"}`
-                : "Success"}
+              {msg}
             </Alert>
           );
         },
